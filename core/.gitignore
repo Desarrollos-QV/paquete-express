@@ -1,0 +1,15 @@
+/vendor
+/node_modules
+/public/storage
+/storage/*.key
+.env
+.env.*.backup
+.idea
+.vscode
+.DS_Store
+*.log
+*.zip
+*.tar.gz
+npm-debug.log
+yarn-error.log
+.phpunit.result.cache
