@@ -48,7 +48,7 @@
             <tr class="d-none set__shipping_price_tr">
                 <td>{{ __('Shipping') }}:</td>
                 <td class="text-gray-dark set__shipping_price">
-                    
+
                 </td>
             </tr>
             <tr>
@@ -60,19 +60,22 @@
     </section>
 
     @if (PriceHelper::CheckDigital() == true)
-    <section class="card widget widget-featured-posts widget-order-summary p-4">
-        <h3 class="widget-title">{{ __('Shipping Options') }}</h3>
-        <div class="row">
-            <div class="col-sm-12 mb-3">
-                @if (PriceHelper::CheckDigital() == true)
-                    @php
-                        $free_shipping = DB::table('shipping_services')->whereStatus(1)->whereIsCondition(1)->first();
-                    @endphp
+        <section class="card widget widget-featured-posts widget-order-summary p-4">
+            <h3 class="widget-title">{{ __('Shipping Options') }}</h3>
+            <div class="row">
+                <div class="col-sm-12 mb-3">
+                    @if (PriceHelper::CheckDigital() == true)
+                        @php
+                            $free_shipping = DB::table('shipping_services')
+                                ->whereStatus(1)
+                                ->whereIsCondition(1)
+                                ->first();
+                        @endphp
 
-                    <select name="shipping_id" class="form-control" id="shipping_id_select" required>
-                        <option value="" selected disabled>{{ __('Select Shipping Method') }}*</option>
-                        
-                        {{-- @foreach (DB::table('shipping_services')->whereStatus(1)->get() as $shipping)
+                        <select name="shipping_id" class="form-control" id="shipping_id_select" required>
+                            <option value="" selected disabled>{{ __('Select Shipping Method') }}*</option>
+
+                            {{-- @foreach (DB::table('shipping_services')->whereStatus(1)->get() as $shipping)
                             @if ($shipping->id == 1 && isset($free_shipping) && $free_shipping->minimum_price <= $cart_total)
                                 <option value="{{ $shipping->id }}" data-href="{{ route('front.shipping.setup') }}">
                                     {{ $shipping->title }}
@@ -86,13 +89,13 @@
                                 @endif
                             @endif
                         @endforeach --}}
-                    </select>
-                    @error('shipping_id')
-                        <p class="text-danger shipping_message">{{ $message }}</p>
-                    @enderror
-                @endif
-            </div>
-            {{-- <div class="col-sm-12 mb-3">
+                        </select>
+                        @error('shipping_id')
+                            <p class="text-danger shipping_message">{{ $message }}</p>
+                        @enderror
+                    @endif
+                </div>
+                {{-- <div class="col-sm-12 mb-3">
                 @if (PriceHelper::CheckDigital() == true)
                     @if (DB::table('states')->whereStatus(1)->count() > 0)
                         <select name="state_id" class="form-control" id="state_id_select" required>
@@ -116,9 +119,9 @@
                     @endif
                 @endif
             </div> --}}
-        </div>
+            </div>
 
-    </section>
+        </section>
     @endif
 
     <!-- Order Summary Widget-->
@@ -157,11 +160,12 @@
                 @endif
                 @if ($setting->is_privacy_trams == 1)
                     <button id="single_checkout_payment" disabled="true"
-                        class="btn btn-primary mt-4 single_checkout_payment" type="submit"><span>@lang('Pay now')</span></button>
+                        class="btn btn-primary mt-4 single_checkout_payment"
+                        type="submit"><span>@lang('Pay now')</span></button>
                 @endif
                 @if ($setting->is_privacy_trams == 0)
-                    <button id="single_checkout_payment"
-                        class="btn btn-primary mt-4 single_checkout_payment" type="submit"><span>@lang('Pay now')</span></button>
+                    <button id="single_checkout_payment" class="btn btn-primary mt-4 single_checkout_payment"
+                        type="submit"><span>@lang('Pay now')</span></button>
                 @endif
             </div>
 
@@ -195,10 +199,32 @@
                         .attr('type', 'hidden') // Set the input type to hidden
                         .attr('name', $(this).attr('name')) // Use the same name attribute
                         .val($(this).val()); // Set the value of the hidden input
+                    console.log(hiddenInput);
 
                     // Append the hidden input to the modal form
                     $(modalElement).find('form').append(hiddenInput);
                 });
+
+
+                // Agregar el valor del select #checkout-colonia
+                let colonia = $("#checkout-colonia");
+                if (colonia.length && colonia.val()) {
+                    let coloniaInput = $('<input>')
+                        .attr('type', 'hidden')
+                        .attr('name', colonia.attr('name'))
+                        .val(colonia.val());
+                    $(modalElement).find('form').append(coloniaInput);
+                }
+
+                // Agregar el valor del select #billing-country
+                let country = $("#billing-country");
+                if (country.length && country.val()) {
+                    let countryInput = $('<input>')
+                        .attr('type', 'hidden')
+                        .attr('name', country.attr('name'))
+                        .val(country.val());
+                    $(modalElement).find('form').append(countryInput);
+                }
             }
         });
 

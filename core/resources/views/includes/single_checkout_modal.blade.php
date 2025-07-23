@@ -29,6 +29,7 @@
              </div>
          </div>
      </div>
+
      <!-- Modal MOLLIE -->
      <div class="modal fade" id="mollie" tabindex="-1" aria-hidden="true">
          <div class="modal-dialog">
@@ -58,6 +59,7 @@
              </div>
          </div>
      </div>
+     
      <!-- Modal PayPal -->
      <div class="modal fade" id="paypal" tabindex="-1" aria-hidden="true">
          <form class="interactive-credit-card row" action="{{ route('front.checkout.submit') }}" method="POST">
@@ -87,7 +89,6 @@
                              type="submit"><span>{{ __('Checkout With PayPal') }}</span></button>
                      </div>
                  </div>
-
              </div>
          </form>
      </div>

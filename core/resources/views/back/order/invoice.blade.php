@@ -12,9 +12,13 @@
                     <h3 class=" mb-0">{{ __('Order Invoice') }} </h3>
                     <div>
                         <a class="btn btn-primary btn-sm" href="{{ route('back.order.index') }}"><i
-                                class="fas fa-chevron-left"></i> {{ __('Back') }}</a>
-                        <a class="btn btn-primary btn-sm" href="{{ route('back.order.print', $order->id) }}" target="_blank"><i
-                                class="fas fa-print"></i> {{ __('print') }}</a>
+                                class="fas fa-chevron-left"></i>&nbsp;  {{ __('Back') }}</a>
+                        <a class="btn btn-primary btn-sm" href="{{ route('back.order.print', $order->id) }}"
+                            target="_blank"><i class="fas fa-print"></i>&nbsp;  {{ __('print') }}</a>
+                        @if ($order->payment_status == 'Paid')
+                        <a class="btn btn-primary btn-sm" href="{{ route('back.order.download.track', $order->id) }}"
+                            target="_blank"><i class="fas fa-download"></i>&nbsp; {{ __('Download PDF Track') }}</a>
+                        @endif
                     </div>
                 </div>
             </div>

@@ -1,9 +1,8 @@
-@if (!isset($error))
+{{-- @if (!isset($error))
 
     <div class="progress-area-step pt-4">
         <ul class="progress-steps">
             @for ($i = 0; $i <= $numbers; $i++)
-
                 @if ($i == 0)
                     @if (!empty($track_orders[$i]))
                         @if ($track_orders[$i]['title'] == 'Pending')
@@ -29,9 +28,8 @@
                         </li>
                     @endif
                 @endif
+
                 @if (!isset($track_orders[3]))
-
-
                     @if ($i == 1)
                         @if (!empty($track_orders[$i]))
                             @if ($track_orders[$i]['title'] == 'In Progress')
@@ -114,6 +112,35 @@
                 @endif
 
             @endfor
+        </ul>
+    </div>
+@else
+    <p>{{ __('Order Not Found') }}</p>
+@endif --}}
+
+
+@if (!isset($error))
+    <div class="progress-area-step pt-4">
+        <ul class="progress-steps">
+            <li class="@if(count($track_orders) == 0) active @endif">
+                <div class="icon"><i class="fas fa-arrow-alt-circle-right"></i></div>
+                <div class="progress-title">{{ __('Pending') }}</div>
+                <div class="progress-title">
+                    </div>
+                <div class="progress-title">{{ __('Product Pending For Approval') }}</div>
+            </li>
+            @foreach ($track_orders as $index => $step)
+                <li class="{{ $loop->last ? 'active' : '' }}">
+                    <div class="icon">
+                        <i class="fas {{ $loop->last ? 'fa-check-circle' : 'fa-truck' }}"></i>
+                    </div>
+                    <div class="progress-title">{{ $step['title'] }}</div>
+                    <div class="progress-title">{{ \Carbon\Carbon::parse($step['created_at'])->format('l, d M Y H:i') }}</div>
+                    @if (!empty($step['lugar']))
+                        <div class="progress-title">{{ $step['lugar'] }}</div>
+                    @endif
+                </li>
+            @endforeach
         </ul>
     </div>
 @else

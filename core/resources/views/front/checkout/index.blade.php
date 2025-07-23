@@ -136,16 +136,16 @@
                                             <div class="col-sm-6">
                                                 <div class="form-group">
                                                     <label for="checkout-city">{{ __('City') }}*</label>
-                                                    <select class="form-control select2 select-search" name="bill_city"
-                                                        id="checkout-city" required disabled>
-                                                        <option value="{{ isset($user) ? $user->bill_city : '' }}">Select
-                                                        </option>
-                                                    </select>
+                                                    <input
+                                                        class="form-control {{ $errors->has('bill_city') ? 'requireInput' : '' }}"
+                                                        name="bill_city" type="text" id="checkout-city"
+                                                        disabled
+                                                        value="{{ isset($user) ? $user->bill_city : '' }}">
                                                 </div>
                                             </div>
                                             <div class="col-sm-6">
                                                 <div class="form-group">
-                                                    <label for="checkout-city">{{ __('Colonia') }}*</label>
+                                                    <label for="checkout-colonia">{{ __('Colonia') }}*</label>
                                                     <select class="form-control select2 select-search" name="bill_colonia"
                                                         id="checkout-colonia" required disabled>
                                                         <option value="{{ isset($user) ? $user->bill_colonia : '' }}">
@@ -237,11 +237,14 @@
                         $("#checkout-city").empty();
 
                         $("#checkout-colonia").prop('disabled', false);
-                        $("#checkout-city").prop('disabled', false);
+                        // $("#checkout-city").prop('disabled', false);
 
                         if (response.code == 200) {
-                            $("#checkout-city").append('<option value="' + response.ciudad + '">' +
-                                response.ciudad + '</option>');
+                            $("#checkout-city").attr('value', response.ciudad);
+
+                            // $("#checkout-city").append('<option value="' + response.ciudad + '">' +
+                            //     response.ciudad + '</option>');
+
                             $.each(response.colonias, function(key, value) {
                                 $("#checkout-colonia").append('<option value="' + value + '">' +
                                     value + '</option>');
@@ -249,7 +252,6 @@
                         }
                     }
                 });
-
 
                 /**
                  * 
@@ -276,8 +278,6 @@
                     },
                     dataType: 'json',
                     success: function(response) {
-                        console.log("shipping => ", response);
-
                         if (response.code == 200) {
                             $("#shipping_id_select").empty();
                             $("#shipping_id_select").prop('disabled', false);

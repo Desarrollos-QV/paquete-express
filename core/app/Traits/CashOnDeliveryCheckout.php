@@ -10,6 +10,7 @@ use App\{
     Helpers\PriceHelper,
     Models\Notification,
 };
+use App\Services\EstafetaCotizadorService;
 use App\Helpers\SmsHelper;
 use App\Jobs\EmailSendJob;
 use App\Models\Item;
@@ -59,7 +60,8 @@ trait CashOnDeliveryCheckout
         if (!PriceHelper::Digital()) {
             $shipping = null;
         } else {
-            $shipping['price'] = $data['shipping_id']; //ShippingService::findOrFail();
+            $shipping = json_decode($data['shippingInfo'], true); //ShippingService::findOrFail();
+            $shipping = ($shipping[0]) ? $shipping[0] : null;
         }
 
         $discount = [];

@@ -168,10 +168,21 @@ class AccountController extends Controller
             $code             = $request->codezip;
             $code_zip_tienda  = $request->code_zip_tienda;
 
-            $pvolum = $request->pvolum;
             $alto   = $request->alto;
             $ancho  = $request->ancho;
             $largo  = $request->largo;
+            $peso   = $request->peso;
+
+            $length = ($largo > 0) ? $largo : 10;
+            $width  = ($ancho  > 0) ? $ancho  : 10;
+            $height = ($alto   > 0) ? $alto   : 10;
+            $realWeight = ($peso > 0) ? $peso : 1; // suponiendo que capturas peso real
+
+            // Calcular peso volumétrico
+            $volumetricWeight = ($length * $width * $height) / 5000;
+
+            // Usar el mayor
+            $weight = max($realWeight, $volumetricWeight);
 
             $data = [
                 "Origin" => $code_zip_tienda,
@@ -180,10 +191,10 @@ class AccountController extends Controller
                 "IsInsurance" => false, // Bandera para calcular el seguro
                 "ItemValue" => 0, // Si Insurance es TRUE del 0 al 9
                 "Dimensions" => [
-                    "Length" => ($pvolum > 0) ? $pvolum : 10,
-                    "Width" => ($alto > 0) ? $alto : 10,
-                    "Height" => ($ancho > 0) ? $ancho : 10,
-                    "Weight" => ($largo > 0) ? $largo : 10
+                    "Length" => $length,
+                    "Width" => $width,
+                    "Height" => $height,
+                    "Weight" => $weight // ya calculado
                 ]
             ];
 
@@ -212,15 +223,18 @@ class AccountController extends Controller
             foreach ($services as $service) {
                 $name = trim($service['ServiceName']); // Algunos servicios pueden venir con espacios
 
-                $shippingOptions[] = [
-                    'code'       => $service['ServiceCode'],
-                    'raw_name'   => $name,
-                    'name'       => $serviceDescriptions[$name] ?? 'Servicio desconocido',
-                    'price'      => $service['TotalAmount'],
-                    'modality'   => $service['Modality'],
-                    'vat'        => $service['VATApplied'],
-                    'warranty'   => strtolower($service['CoversWarranty']) === 'true',
-                ];
+                if($name == 'Terrestre')
+                {
+                    $shippingOptions[] = [
+                        'code'       => $service['ServiceCode'],
+                        'raw_name'   => $name,
+                        'name'       => $serviceDescriptions[$name] ?? 'Servicio desconocido',
+                        'price'      => $service['TotalAmount'],
+                        'modality'   => $service['Modality'],
+                        'vat'        => $service['VATApplied'],
+                        'warranty'   => strtolower($service['CoversWarranty']) === 'true',
+                    ];
+                }
             }
 
             return response()->json(['code' => 200, 'data' => $shippingOptions, 'allData' => $quotation]);

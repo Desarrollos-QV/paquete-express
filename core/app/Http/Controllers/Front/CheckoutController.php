@@ -430,8 +430,6 @@ class CheckoutController extends Controller
         $paypal_supported = ['USD', 'EUR', 'AUD', 'BRL', 'CAD', 'HKD', 'JPY', 'MXN', 'NZD', 'PHP', 'GBP', 'RUB'];
         $paystack_supported = ['MXN','NGN'];
 
-
-
         switch ($input['payment_method']) {
 
             case 'Stripe':

@@ -54,8 +54,9 @@ trait PaystackCheckout
        
         if (!PriceHelper::Digital()) {
             $shipping = null;
-        }else{
-            $shipping['price'] = $data['shipping_id']; //ShippingService::findOrFail($data['shipping_id']);
+        } else {
+            $shipping = json_decode($data['shippingInfo'], true); //ShippingService::findOrFail();
+            $shipping = ($shipping[0]) ? $shipping[0] : null;
         }
         $discount = [];
         if(Session::has('coupon')){

@@ -490,6 +490,8 @@ class PriceHelper
                 "ship_address1" => $request->bill_address1,
                 "ship_address2" => $request->bill_address2,
                 "ship_zip" => $request->bill_zip,
+                "ship_city" => $request->bill_city,
+                "ship_colonia" => $request->bill_colonia,
                 "ship_country" => $request->bill_country,
             ];
         } else {

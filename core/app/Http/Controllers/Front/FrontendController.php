@@ -17,6 +17,7 @@ use App\{
     Http\Requests\SubscribeRequest,
     Repositories\Front\FrontRepository
 };
+use App\Services\EstafetaCotizadorService;
 use App\Jobs\EmailSendJob;
 use App\Models\Brand;
 use App\Models\Menu;
@@ -45,8 +46,12 @@ class FrontendController extends Controller
      *
      */
     protected $repository;
+    protected $estafeta_Service;
+
     public function __construct(FrontRepository $repository)
     {
+        $this->estafeta_Service = new EstafetaCotizadorService;
+
         $this->repository = $repository;
         $setting = Setting::first();
         if ($setting->recaptcha == 1) {
@@ -445,12 +450,12 @@ class FrontendController extends Controller
             'message' => 'required|max:250',
             'honeypot'   => 'max:0',
         ]);
-        
+
         $input = $request->all();
 
 
 
-       
+
         $name  = $input['first_name'] . ' ' . $input['last_name'];
         $subject = "Email From " . $name;
         $to = $setting->contact_email;
@@ -464,14 +469,14 @@ class FrontendController extends Controller
             'body' => $msg,
         ];
 
-        
+
 
         $setting = Setting::first();
         if ($setting->is_queue_enabled == 1) {
             dispatch(new EmailSendJob($emailData));
         } else {
             $email = new EmailHelper();
-             $email->sendCustomMail($emailData);
+            $email->sendCustomMail($emailData);
         }
 
 
@@ -517,10 +522,111 @@ class FrontendController extends Controller
     {
         $order = Order::where('transaction_number', $request->order_number)->first();
 
+
+
         if ($order) {
+
+            if (!$order || !$order->transaction_number) {
+                abort(404, 'Transacción no encontrada.');
+            }
+
+            // Desmenuzar el txn_id → ejemplo: ORD-3136927668-196
+            $parts = explode('-', $order->transaction_number); // ["ORD", "3136927668", "196"]
+            if (count($parts) < 3) {
+                abort(400, 'Formato de código inválido.');
+            }
+
+            $trackingCode = $parts[1]; // "3136927668"
+
+            $trackData = $this->estafeta_Service->rastrearGuia($trackingCode);
+
+            $trackData2 = [
+                "items" => [
+                    [
+                        "information" => [
+                            "originalWaybill" => "2015410173997631417025",
+                            "waybillCode" => "2015410173997631417025",
+                            "trackingCode" => "0550655621"
+                        ],
+                        "service" => [
+                            "code" => "63",
+                            "spanishName" => "Dia Sig.",
+                            "englishName" =>  "NEXT DAY",
+                            "customerCode" => "5410173",
+                            "destinationPostalCode" => "62746",
+                            "destinationWarehouseCode" => "CVA"
+                        ],
+                        "package" => [
+                            "codeType" => "0",
+                            "nameType" => "",
+                            "dimensions" => []
+                        ],
+                        "pickupDetails" => [],
+                        "statusCurrent" => [
+                            "code" => "7",
+                            "spanishName" => "Entregado en sucursal Estafeta",
+                            "englishName" => "Delivered in OCURRE office",
+                            "localDateTime" => "2021-07-14 20:48:00",
+                            "warehouseName" => "Cuernavaca"
+                        ],
+                        "deliveryDetails" => [
+                            "receiverName" => "SOE: ENTREGA A CLIENTE NUMERO UNO",
+                            "longitude" => -98.9449448,
+                            "latitude" => 18.8308837
+                        ],
+                        "status" => [
+                            [
+                                "code" => "2",
+                                "spanishName" => "En Tránsito",
+                                "englishName" => "On transit",
+                                "eventDateTime" => "2021-07-14 17:34:00",
+                                "isReasonCode" => false,
+                                "reasonCodeDescription" => "",
+                                "warehouseName" => "Cuernavaca"
+                            ],
+                            [
+                                "code" => "5",
+                                "spanishName" => "Disponible en Oficina",
+                                "englishName" => "Available in office",
+                                "eventDateTime" => "2021-07-12 17:00:00",
+                                "isReasonCode" => false,
+                                "reasonCodeDescription" => "",
+                                "warehouseName" => "Estafeta Insurgentes( Manantiales )"
+                            ],
+                            [
+                                "code" => "7",
+                                "spanishName" => "Entregado en sucursal Estafeta",
+                                "englishName" => "Delivered in OCURRE office",
+                                "eventDateTime" => "2021-07-14 20:48:00",
+                                "isReasonCode" => false,
+                                "reasonCodeDescription" => "",
+                                "warehouseName" => "Cuernavaca"
+                            ],
+                        ]
+                    ]
+                ]
+            ];
+
+
+            $estafetaTrack = $trackData['items'][0]['status'] ?? [];
+
+            $track_orders = collect($estafetaTrack)->map(function ($item) {
+                return [
+                    'title'      => $item['spanishName'],
+                    'created_at' => $item['eventDateTime'],
+                    'lugar'      => $item['warehouseName'] ?? null,
+                ];
+            });
+
+            // return response()->json([
+            //     'track_orders' => $track_orders,
+            //     'numbers' => $track_orders->count() - 1
+            // ]);
+
             return view('user.order.track', [
-                'numbers' => 3,
-                'track_orders' => TrackOrder::whereOrderId($order->id)->get()->toArray()
+                'track_orders' => $track_orders,
+                'numbers' => $track_orders->count() - 1
+                //TrackOrder::whereOrderId($order->id)->get()->toArray()
             ]);
         } else {
             return view('user.order.track', [
@@ -544,7 +650,7 @@ class FrontendController extends Controller
 
     public function finalize()
     {
-  
+
         Artisan::call('migrate', ['--seed' => true]);
         copy(str_replace('core', '', base_path() . "updater/composer.json"), base_path('composer.json'));
         copy(str_replace('core', '', base_path() . "updater/composer.lock"), base_path('composer.lock'));
@@ -563,8 +669,8 @@ class FrontendController extends Controller
         }
 
 
-        $menu = Menu::where('language_id',1)->exists();
-  
+        $menu = Menu::where('language_id', 1)->exists();
+
         if ($menu == false) {
             $menu = new Menu();
             $menu->language_id = 1;
@@ -581,7 +687,7 @@ class FrontendController extends Controller
         $sourcePath = 'assets/images';
         $destinationPath = storage_path('app/public/images');
 
-        
+
 
         // Ensure the destination exists
         if (!File::exists($destinationPath)) {
@@ -590,9 +696,9 @@ class FrontendController extends Controller
 
         if (File::exists($sourcePath)) {
             // Move files and folders
-        File::moveDirectory($sourcePath, $destinationPath, true);
+            File::moveDirectory($sourcePath, $destinationPath, true);
         }
-        
+
 
         Artisan::call('cache:clear');
         Artisan::call('config:clear');

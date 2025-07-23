@@ -11,6 +11,7 @@ use App\{
     Models\Notification,
     Models\PaymentSetting,
 };
+use App\Services\EstafetaCotizadorService;
 use App\Helpers\SmsHelper;
 use App\Jobs\EmailSendJob;
 use App\Models\Item as ModelsItem;
@@ -29,9 +30,11 @@ trait PaypalCheckout
 {
 
     private $_api_context;
+    protected $estafeta_Service;
 
     public function __construct()
     {
+        $this->estafeta_Service = new EstafetaCotizadorService;
         $data = PaymentSetting::whereUniqueKeyword('paypal')->first();
         $paydata = $data->convertJsonData();
 
@@ -53,8 +56,14 @@ trait PaypalCheckout
         $total = 0;
         $option_price = 0;
 
-        foreach ($cart as $key => $items) {
+        if (!PriceHelper::Digital()) {
+            $shipping = null;
+        } else {
+            $shipping = json_decode($data['shippingInfo'], true); //ShippingService::findOrFail();
+            $shipping = ($shipping[0]) ? $shipping[0] : null;
+        }
 
+        foreach ($cart as $key => $items) {
             $total += $items['main_price'] * $items['qty'];
             $option_price += $items['attribute_price'];
             $cart_total = $total + $option_price;
@@ -62,14 +71,6 @@ trait PaypalCheckout
             if ($item->tax) {
                 $total_tax += $item::taxCalculate($item) * $items['qty'];
             }
-        }
-
-
-
-        if (!PriceHelper::Digital()) {
-            $shipping = null;
-        } else {
-            $shipping['price'] = $data['shipping_id']; //ShippingService::findOrFail($data['shipping_id']);
         }
 
         $discount = [];
@@ -98,7 +99,6 @@ trait PaypalCheckout
         $payment_notify_url = route('front.checkout.redirect');
 
         try {
-
             $response = $this->gateway->purchase(array(
                 'amount' => $paypal_item_amount,
                 'currency' => PriceHelper::setCurrencyName(),
@@ -111,9 +111,9 @@ trait PaypalCheckout
                 Session::put('order_data', $orderData);
                 Session::put('order_input_data', $data);
                 Session::put('order_payment_id', $response->getTransactionReference());
+
                 if ($response->redirect()) {
                     /** redirect to paypal **/
-
                     return [
                         'status' => true,
                         'link' => $response->redirect()
@@ -134,11 +134,13 @@ trait PaypalCheckout
 
     public function paypalNotify($responseData)
     {
-        //dd($responseData);
         $orderData = Session::get('order_data');
         /** Get the payment ID before session clear **/
         $order_input_data = Session::get('order_input_data');
 
+        /** Get Shiping Info */
+        $shipping_info = Session::get('shipping_address');
+        $label_rest_estafeta = []; //<- Data for Shipping
         /** clear the session payment ID **/
         if (empty($responseData['PayerID']) || empty($responseData['token'])) {
             return [
@@ -146,13 +148,14 @@ trait PaypalCheckout
                 'message' => __('Unknown error occurred')
             ];
         }
+
         $transaction = $this->gateway->completePurchase(array(
             'payer_id' => $responseData['PayerID'],
             'transactionReference' => $responseData['paymentId'],
         ));
 
-
         $response = $transaction->send();
+
         if ($response->isSuccessful()) {
 
             $cart = Session::get('cart');
@@ -161,8 +164,15 @@ trait PaypalCheckout
             $cart_total = 0;
             $total = 0;
             $option_price = 0;
-            foreach ($cart as $key => $item) {
 
+            if (!PriceHelper::Digital()) {
+                $shipping = null;
+            } else {
+                $shipping = json_decode($order_input_data['shippingInfo'], true); //ShippingService::findOrFail();
+                $shipping = ($shipping[0]) ? $shipping[0] : null;
+            }
+
+            foreach ($cart as $key => $item) {
                 $total += $item['main_price'] * $item['qty'];
                 $option_price += $item['attribute_price'];
                 $cart_total = $total + $option_price;
@@ -170,22 +180,142 @@ trait PaypalCheckout
                 if ($item->tax) {
                     $total_tax += $item->tax->value;
                 }
+
+                // Calculamos el volumetrico
+                $length = ($item['largo'] > 0) ? $item['largo'] : 10;
+                $width  = ($item['ancho']  > 0) ? $item['ancho']  : 10;
+                $height = ($item['alto']   > 0) ? $item['alto']   : 10;
+                $realWeight = ($item['peso'] > 0) ? $item['peso'] : 1; // suponiendo que capturas peso real
+
+                // Calcular peso volumétrico
+                $volumetricWeight = ($length * $width * $height) / 5000;
+
+                // Usar el mayor
+                $weight = max($realWeight, $volumetricWeight);
+                /**
+                 * Generamos la GUIA o LABEL REST del Servicio de Estafeta
+                 */
+                $label_rest_estafeta = [
+                    "identification" => [
+                        "suscriberId"    => env("ESTAFETA_SUBSCRIBER_ID"),
+                        "customerNumber" => env("ESTAFETA_CUSTOMER_NUMBER"),
+                    ],
+                    "systemInformation" => [
+                        "id"      => 'AP' . env('ESTAFETA_SUBSCRIBER_ID'),
+                        "name"    => 'AP' . env('ESTAFETA_SUBSCRIBER_ID'),
+                        "version" => "1.10.20"
+                    ],
+                    "labelDefinitions" => [
+                        [
+                            "wayBillDocument" => [
+                                "aditionalInfo" => "string",
+                                "content"       => substr($item['slug'], 0, 20) . '...',
+                                "costCenter"    => "SPMXA12345",
+                                "customerShipmentId" => null,
+                                "referenceNumber" => "PED-" . substr(md5(now()->addDays(1)->format('Y-m-d')), 0, 5),
+                                "groupShipmentId"    => null
+                            ],
+                            "itemDescription" => [
+                                "parcelId" => 4,
+                                "weight"   => $weight,
+                                "length"   => $length ?? 10,
+                                "width"    => $width ?? 10,
+                                "height"   => $height ?? 10,
+                                "Merchandise" => [
+                                    "totalGrossWeight" => $height ?? 10,
+                                    "weightUnitCode" => "XLU",
+                                    "merchandise" => [
+                                        [
+                                            "merchandiseValue" => 0.1,
+                                            "currency" => "MXN",
+                                            "productServiceCode" => "10131508",
+                                            "merchandiseQuantity" => count($cart),
+                                            "measurementUnitCode" => "F63",
+                                            "tariffFraction" => null,
+                                            "isInternational" => false,
+                                            "isImport" => false,
+                                            "isHazardousMaterial" => false,
+                                            "hazardousMaterialCode" => null,
+                                            "packagingCode" => "4A"
+                                        ]
+                                    ]
+                                ]
+                            ],
+                            "serviceConfiguration" => [
+                                "quantityOfLabels"        => 1,
+                                "serviceTypeId"           => $this->estafeta_Service->mapServiceCodeToServiceTypeId($shipping['code']),
+                                "salesOrganization"       => "112", // O el que te proporcione Estafeta
+                                "effectiveDate"           => now()->addDays(5)->format('Ymd'),
+                                "originZipCodeForRouting" => env('ESTAFETA_ORIGIN_ZIPCODE'),
+                                "isInsurance"             => false,
+                                "isReturnDocument"        => false,
+                            ],
+                            "location" => [
+                                "isDRAAlternative" => false,
+                                "DRAAlternative" => [
+                                    "contact" => [
+                                        "corporateName" => env("ESTAFETA_ORIGIN_CONTACT_NAME"),
+                                        "contactName"   => env("ESTAFETA_ORIGIN_CONTACT_NAME"),
+                                        "cellPhone"     => env("ESTAFETA_ORIGIN_PHONE") ?? '0000',
+                                        "email"         => "soporte@paquetelleguexpress.com_orga156b5a0-e6e0-4"
+                                    ],
+                                    "address" => $this->estafeta_Service->getDefaultOrigin(),
+                                ],
+                                "origin" => [
+                                    "contact" => [
+                                        "corporateName" => env("ESTAFETA_ORIGIN_CONTACT_NAME"),
+                                        "contactName"   => env("ESTAFETA_ORIGIN_CONTACT_NAME"),
+                                        "cellPhone"     => env("ESTAFETA_ORIGIN_PHONE") ?? '0000',
+                                        "email"         => "soporte@paquetelleguexpress.com_orga156b5a0-e6e0-4"
+                                    ],
+                                    "address" => $this->estafeta_Service->getDefaultOrigin(),
+                                ],
+                                "destination" => [
+                                    "isDeliveryToPUDO" => false,
+                                    "homeAddress" => [
+                                        "contact" => [
+                                            "corporateName" => $shipping_info['ship_first_name'] . ' ' . $shipping_info['ship_last_name'],
+                                            "contactName"   => $shipping_info['ship_first_name'] . ' ' . $shipping_info['ship_last_name'],
+                                            "cellPhone"     => $shipping_info['ship_phone'] ?? '',
+                                            "email"         => $shipping_info['ship_email'] ?? "no-reply@cliente.com"
+                                        ],
+                                        "address" => [
+                                            "zipCode"        => $shipping_info['ship_zip'],
+                                            "roadName"       => $shipping_info['ship_address1'], // Asegúrate que solo sea calle
+                                            "externalNum"    => $shipping_info['ship_num_ext'] ?? "S/N",
+                                            "settlementName" => $shipping_info['ship_colonia'],
+                                            "townshipName"   => $shipping_info['ship_city'],
+                                            "stateAbbName"   => $shipping_info['ship_country'],
+                                            "countryName"    => "MEX",
+                                            "bUsedCode"      => false,
+                                            "roadTypeAbbName"       => "string",
+                                            "settlementTypeAbbName" => "string"
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ];
             }
-            if (!PriceHelper::Digital()) {
-                $shipping = null;
-            } else {
-                $shipping = ShippingService::findOrFail($order_input_data['shipping_id']);
+
+            $responseEstafService = $this->estafeta_Service->generarGuia($label_rest_estafeta);
+
+            if($responseEstafService['status'] == 200)
+            {
+                $waybill = $responseEstafService['result']['labelPetitionResults'][0]['elements'][0]['wayBill'] ?? null;
+                $tracking_code = $responseEstafService['result']['labelPetitionResults'][0]['elements'][0]['trackingCode'] ?? null;
             }
+
+
             $discount = [];
             if (Session::has('coupon')) {
                 $discount = Session::get('coupon');
             }
 
-            $grand_total = ($cart_total + ($shipping ? $shipping->price : 0)) + $total_tax;
+            $grand_total = ($cart_total + ($shipping ? $shipping['price'] : 0)) + $total_tax;
             $grand_total = $grand_total - ($discount ? $discount['discount'] : 0);
             $total_amount = PriceHelper::setConvertPrice($grand_total);
-
-
 
             $orderData['txnid'] = $response->getData()['transactions'][0]['related_resources'][0]['sale']['id'];
             $orderData['payment_status'] = 'Paid';
@@ -194,9 +324,12 @@ trait PaypalCheckout
             $orderData['currency_value'] = PriceHelper::setCurrencyValue();
             $orderData['order_status'] = 'Pending';
             $order = Order::create($orderData);
-            $new_txn =  $new_txn = 'ORD-' . str_pad(Carbon::now()->format('Ymd'), 4, '0000', STR_PAD_LEFT) . '-' . $order->id;
-            $order->transaction_number = $new_txn;
+            
+            $order->transaction_number =  ($tracking_code != null) ? 'ORD-' . $tracking_code . '-' . $order->id : 'ORD-' . str_pad(Carbon::now()->format('Ymd'), 4, '0000', STR_PAD_LEFT) . '-' . $order->id;
             $order->save();
+
+            // dd($label_rest_estafeta);
+
 
             PriceHelper::Transaction($order->id, $order->transaction_number, EmailHelper::getEmail(), PriceHelper::OrderTotal($order, 'trns'));
             PriceHelper::LicenseQtyDecrese($cart);
@@ -256,6 +389,7 @@ trait PaypalCheckout
             Session::forget('order_data');
             Session::forget('order_payment_id');
             Session::forget('coupon');
+
             return [
                 'status' => true
             ];
