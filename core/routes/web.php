@@ -37,6 +37,7 @@ Route::group(['middleware' => ['adminlocalize', 'demo']], function () {
             Route::get('/order/edit/{id}', 'Back\OrderController@edit')->name('back.order.edit');
             Route::post('/order/update/{id}', 'Back\OrderController@update')->name('back.order.update');
             Route::get('/order/print/{id}', 'Back\OrderController@printOrder')->name('back.order.print');
+            Route::get('/order/guide/generated/{id}', 'Back\OrderController@GeneratedGuideOrder')->name('back.order.guide.generated');
             Route::get('/order/track/{id}', 'Back\OrderController@DownloadOrderTrack')->name('back.order.download.track');
             Route::get('/order/invoice/{id}', 'Back\OrderController@invoice')->name('back.order.invoice');
             Route::get('/order/status/{id}/{field}/{value}', 'Back\OrderController@status')->name('back.order.status');
@@ -149,6 +150,11 @@ Route::group(['middleware' => ['adminlocalize', 'demo']], function () {
             //------------ SHIPPING SERVICE ------------
             Route::get('shipping/status/{id}/{status}', 'Back\ShippingServiceController@status')->name('back.shipping.status');
             Route::resource('shipping', 'Back\ShippingServiceController', ['as' => 'back', 'except' => 'show']);
+
+            //------------ GeoZones SERVICE ------------
+            Route::get('geozones/status/{id}/{status}', 'Back\GeoZonesServiceController@status')->name('back.geozones.status');
+            Route::get('geozones/coorsd/{id}', 'Back\GeoZonesServiceController@status')->name('back.geozones.coords');
+            Route::resource('geozones', 'Back\GeoZonesServiceController', ['as' => 'back', 'except' => 'show']);
 
             //------------ CURRENCY ------------
             Route::get('currency/status/{id}/{status}', 'Back\CurrencyController@status')->name('back.currency.status');
@@ -349,6 +355,7 @@ Route::group(['middleware' => 'maintainance'], function () {
             Route::get('/addresses', 'User\AccountController@addresses')->name('user.address');
             Route::post('/billing/addresses', 'User\AccountController@billingSubmit')->name('user.billing.submit');
             Route::post('/shipping/addresses', 'User\AccountController@shippingSubmit')->name('user.shipping.submit');
+            Route::get('/shipping/geozones', 'User\AccountController@geozones')->name('user.shipping.geozones');
             Route::get('/shipping/addresses/code', 'User\AccountController@shippingSubmitCode')->name('user.shipping.code.submit');
             Route::get('/shipping/addresses/paquete', 'User\AccountController@shippingPaquete')->name('user.shipping.paquete');
 

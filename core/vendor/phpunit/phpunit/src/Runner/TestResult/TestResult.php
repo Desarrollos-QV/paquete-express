@@ -388,20 +388,21 @@ final class TestResult
 
     public function wasSuccessful(): bool
     {
+        return $this->wasSuccessfulIgnoringPhpunitWarnings() &&
+               !$this->hasTestTriggeredPhpunitErrorEvents() &&
+               !$this->hasTestRunnerTriggeredWarningEvents() &&
+               !$this->hasTestTriggeredPhpunitWarningEvents();
+    }
+
+    public function wasSuccessfulIgnoringPhpunitWarnings(): bool
+    {
         return !$this->hasTestErroredEvents() &&
-               !$this->hasTestFailedEvents() &&
-               !$this->hasTestTriggeredPhpunitErrorEvents();
+               !$this->hasTestFailedEvents();
     }
 
     public function wasSuccessfulAndNoTestHasIssues(): bool
     {
         return $this->wasSuccessful() && !$this->hasTestsWithIssues();
-    }
-
-    public function hasIssues(): bool
-    {
-        return $this->hasTestsWithIssues() ||
-               $this->hasTestRunnerTriggeredWarningEvents();
     }
 
     public function hasTestsWithIssues(): bool
@@ -411,8 +412,7 @@ final class TestResult
                $this->hasDeprecations() ||
                !empty($this->errors) ||
                $this->hasNotices() ||
-               $this->hasWarnings() ||
-               $this->hasPhpunitWarnings();
+               $this->hasWarnings();
     }
 
     /**
@@ -515,17 +515,6 @@ final class TestResult
                count($this->testRunnerTriggeredDeprecationEvents);
     }
 
-    public function hasPhpunitWarnings(): bool
-    {
-        return $this->numberOfPhpunitWarnings() > 0;
-    }
-
-    public function numberOfPhpunitWarnings(): int
-    {
-        return count($this->testTriggeredPhpunitWarningEvents) +
-               count($this->testRunnerTriggeredWarningEvents);
-    }
-
     public function numberOfDeprecations(): int
     {
         return count($this->deprecations) +
@@ -553,7 +542,9 @@ final class TestResult
     public function numberOfWarnings(): int
     {
         return count($this->warnings) +
-               count($this->phpWarnings);
+               count($this->phpWarnings) +
+               count($this->testTriggeredPhpunitWarningEvents) +
+               count($this->testRunnerTriggeredWarningEvents);
     }
 
     public function hasIncompleteTests(): bool

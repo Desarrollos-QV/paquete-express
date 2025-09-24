@@ -1171,6 +1171,37 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
     }
 
     /**
+     * @throws AssertionFailedError
+     * @throws Exception
+     * @throws ExpectationFailedException
+     * @throws Throwable
+     *
+     * @internal This method is not covered by the backward compatibility promise for PHPUnit
+     */
+    protected function runTest(): mixed
+    {
+        $testArguments = array_merge($this->data, $this->dependencyInput);
+
+        $this->registerMockObjectsFromTestArguments($testArguments);
+
+        try {
+            $testResult = $this->{$this->name}(...array_values($testArguments));
+        } catch (Throwable $exception) {
+            if (!$this->shouldExceptionExpectationsBeVerified($exception)) {
+                throw $exception;
+            }
+
+            $this->verifyExceptionExpectations($exception);
+
+            return null;
+        }
+
+        $this->expectedExceptionWasNotRaised();
+
+        return $testResult;
+    }
+
+    /**
      * This method is a wrapper for the ini_set() function that automatically
      * resets the modified php.ini setting to its original value after the
      * test is run.
@@ -1530,35 +1561,6 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
     protected function onNotSuccessfulTest(Throwable $t): never
     {
         throw $t;
-    }
-
-    /**
-     * @throws AssertionFailedError
-     * @throws Exception
-     * @throws ExpectationFailedException
-     * @throws Throwable
-     */
-    private function runTest(): mixed
-    {
-        $testArguments = array_merge($this->data, $this->dependencyInput);
-
-        $this->registerMockObjectsFromTestArguments($testArguments);
-
-        try {
-            $testResult = $this->{$this->name}(...array_values($testArguments));
-        } catch (Throwable $exception) {
-            if (!$this->shouldExceptionExpectationsBeVerified($exception)) {
-                throw $exception;
-            }
-
-            $this->verifyExceptionExpectations($exception);
-
-            return null;
-        }
-
-        $this->expectedExceptionWasNotRaised();
-
-        return $testResult;
     }
 
     /**
@@ -2075,9 +2077,9 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
         $this->invokeHookMethods(
             $hookMethods['beforeClass'],
             $emitter,
-            'beforeFirstTestMethodCalled',
-            'beforeFirstTestMethodErrored',
-            'beforeFirstTestMethodFinished',
+            'testBeforeFirstTestMethodCalled',
+            'testBeforeFirstTestMethodErrored',
+            'testBeforeFirstTestMethodFinished',
         );
     }
 
@@ -2089,9 +2091,9 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
         $this->invokeHookMethods(
             $hookMethods['before'],
             $emitter,
-            'beforeTestMethodCalled',
-            'beforeTestMethodErrored',
-            'beforeTestMethodFinished',
+            'testBeforeTestMethodCalled',
+            'testBeforeTestMethodErrored',
+            'testBeforeTestMethodFinished',
         );
     }
 
@@ -2103,9 +2105,9 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
         $this->invokeHookMethods(
             $hookMethods['preCondition'],
             $emitter,
-            'preConditionCalled',
-            'preConditionErrored',
-            'preConditionFinished',
+            'testPreConditionCalled',
+            'testPreConditionErrored',
+            'testPreConditionFinished',
         );
     }
 
@@ -2117,9 +2119,9 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
         $this->invokeHookMethods(
             $hookMethods['postCondition'],
             $emitter,
-            'postConditionCalled',
-            'postConditionErrored',
-            'postConditionFinished',
+            'testPostConditionCalled',
+            'testPostConditionErrored',
+            'testPostConditionFinished',
         );
     }
 
@@ -2131,9 +2133,9 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
         $this->invokeHookMethods(
             $hookMethods['after'],
             $emitter,
-            'afterTestMethodCalled',
-            'afterTestMethodErrored',
-            'afterTestMethodFinished',
+            'testAfterTestMethodCalled',
+            'testAfterTestMethodErrored',
+            'testAfterTestMethodFinished',
         );
     }
 
@@ -2147,17 +2149,17 @@ abstract class TestCase extends Assert implements Reorderable, SelfDescribing, T
         $this->invokeHookMethods(
             $hookMethods['afterClass'],
             $emitter,
-            'afterLastTestMethodCalled',
-            'afterLastTestMethodErrored',
-            'afterLastTestMethodFinished',
+            'testAfterLastTestMethodCalled',
+            'testAfterLastTestMethodErrored',
+            'testAfterLastTestMethodFinished',
         );
     }
 
     /**
      * @psalm-param list<non-empty-string> $hookMethods
-     * @psalm-param 'beforeFirstTestMethodCalled'|'beforeTestMethodCalled'|'preConditionCalled'|'postConditionCalled'|'afterTestMethodCalled'|'afterLastTestMethodCalled' $calledMethod
-     * @psalm-param 'beforeFirstTestMethodErrored'|'beforeTestMethodErrored'|'preConditionErrored'|'postConditionErrored'|'afterTestMethodErrored'|'afterLastTestMethodErrored' $erroredMethod
-     * @psalm-param 'beforeFirstTestMethodFinished'|'beforeTestMethodFinished'|'preConditionFinished'|'postConditionFinished'|'afterTestMethodFinished'|'afterLastTestMethodFinished' $finishedMethod
+     * @psalm-param 'testBeforeFirstTestMethodCalled'|'testBeforeTestMethodCalled'|'testPreConditionCalled'|'testPostConditionCalled'|'testAfterTestMethodCalled'|'testAfterLastTestMethodCalled' $calledMethod
+     * @psalm-param 'testBeforeFirstTestMethodErrored'|'testBeforeTestMethodErrored'|'testPreConditionErrored'|'testPostConditionErrored'|'testAfterTestMethodErrored'|'testAfterLastTestMethodErrored' $erroredMethod
+     * @psalm-param 'testBeforeFirstTestMethodFinished'|'testBeforeTestMethodFinished'|'testPreConditionFinished'|'testPostConditionFinished'|'testAfterTestMethodFinished'|'testAfterLastTestMethodFinished' $finishedMethod
      *
      * @throws Throwable
      */

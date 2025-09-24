@@ -52,7 +52,6 @@ trait CashOnDeliveryCheckout
                 'alto '=> $item['alto'],
                 'ancho'=> $item['ancho'],
                 'largo'=> $item['largo'],
-
             );
         }
 
@@ -88,6 +87,7 @@ trait CashOnDeliveryCheckout
         $orderData['currency_value'] = PriceHelper::setCurrencyValue();
         $orderData['payment_status'] = 'Unpaid';
         $orderData['order_status'] = 'Pending';
+        $orderData['type_ship'] = $data['type_ship'];
         $order = Order::create($orderData);
 
         $new_txn =  $new_txn = 'ORD-' . str_pad(Carbon::now()->format('Ymd'), 4, '0000', STR_PAD_LEFT) . '-' . $order->id;

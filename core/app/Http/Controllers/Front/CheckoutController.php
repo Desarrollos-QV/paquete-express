@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Front;
 
 use App\{
     Models\Order,
+    Models\Geozones,
     Models\PaymentSetting,
     Traits\StripeCheckout,
     Traits\MollieCheckout,
@@ -129,6 +130,8 @@ class CheckoutController extends Controller
         $data['alto']  =  $alto;
         $data['largo'] =  $largo;
         $data['ancho'] =  $ancho;
+
+        
 
         return view('front.checkout.index', $data);
     }
@@ -483,7 +486,6 @@ class CheckoutController extends Controller
                 $payment_redirect = true;
                 $payment = $this->PayTabsSubmit($input);
                 break;
-
             case 'Cash On Delivery':
                 $checkout = true;
                 $payment = $this->cashOnDeliverySubmit($input);

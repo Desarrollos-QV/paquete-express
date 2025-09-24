@@ -48,9 +48,7 @@ abstract class Helper implements HelperInterface
         $string ??= '';
 
         if (preg_match('//u', $string)) {
-            $string = preg_replace('/[\p{Cc}\x7F]++/u', '', $string, -1, $count);
-
-            return (new UnicodeString($string))->width(false) + $count;
+            return (new UnicodeString($string))->width(false);
         }
 
         if (false === $encoding = mb_detect_encoding($string, null, true)) {

@@ -11,6 +11,7 @@ use App\{
 };
 use App\Helpers\ImageHelper;
 use App\Models\Order;
+use App\Models\Geozones;
 use Illuminate\Http\Request;
 use App\Models\Subscriber;
 use App\Models\User;
@@ -121,6 +122,19 @@ class AccountController extends Controller
         return redirect(route('front.index'));
     }
 
+    /**
+     * Summary of geozones
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function geozones()
+    {
+        $local_shipping = GeoZones::whereStatus(1)->get()->makeHidden(['created_at', 'updated_at']);
+ 
+        return response()->json([
+            'code' => 200,
+            'geozones' => $local_shipping 
+        ]);
+    }
 
     /**
      * Summary of shippingSubmitCode

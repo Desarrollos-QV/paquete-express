@@ -53,4 +53,34 @@ class Order extends Model
     	return $this->hasMany('App\Models\Notification','order_id');
     }
 
+    public function ViewScaleVolumetric($ct)
+    {
+        // Generamos GUIA
+        $cart = json_decode($ct, true);
+        $ScaleWeight = 0;
+        $VolumetricWeight = 0;
+
+        foreach ($cart as $key => $item) {
+          
+            // Calculamos el volumetrico
+            $length = (isset($item['largo'])) ? $item['largo'] : 10;
+            $width  = (isset($item['ancho'])) ? $item['ancho']  : 10;
+            $height = (isset($item['alto'])) ? $item['alto']   : 10;
+            $realWeight = (isset($item['peso'])) ? $item['peso'] : 1; // suponiendo que capturas peso real
+            
+            // Calcular peso volumétrico
+            $volumetricWeight = ($length * $width * $height) / 5000;
+
+            // Usar el mayor
+            $weight = max($realWeight, $volumetricWeight);
+            $ScaleWeight += $weight;
+            $VolumetricWeight += $volumetricWeight;
+        }
+
+        return [
+            'ScaleWeight' => $ScaleWeight,
+            'VolumetricWeight' => $VolumetricWeight,
+        ];
+    }
+
 }

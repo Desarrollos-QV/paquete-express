@@ -522,112 +522,111 @@ class FrontendController extends Controller
     {
         $order = Order::where('transaction_number', $request->order_number)->first();
 
-
-
         if ($order) {
 
-            if (!$order || !$order->transaction_number) {
-                abort(404, 'Transacción no encontrada.');
-            }
+            if($order->type_ship == 1)
+            {
+                if (!$order || !$order->transaction_number) {
+                    abort(404, 'Transacción no encontrada.');
+                }
 
-            // Desmenuzar el txn_id → ejemplo: ORD-3136927668-196
-            $parts = explode('-', $order->transaction_number); // ["ORD", "3136927668", "196"]
-            if (count($parts) < 3) {
-                abort(400, 'Formato de código inválido.');
-            }
+                $trackingCode = $order->guide_generated;
 
-            $trackingCode = $parts[1]; // "3136927668"
+                $trackData = $this->estafeta_Service->rastrearGuia($trackingCode);
 
-            $trackData = $this->estafeta_Service->rastrearGuia($trackingCode);
-
-            $trackData2 = [
-                "items" => [
-                    [
-                        "information" => [
-                            "originalWaybill" => "2015410173997631417025",
-                            "waybillCode" => "2015410173997631417025",
-                            "trackingCode" => "0550655621"
-                        ],
-                        "service" => [
-                            "code" => "63",
-                            "spanishName" => "Dia Sig.",
-                            "englishName" =>  "NEXT DAY",
-                            "customerCode" => "5410173",
-                            "destinationPostalCode" => "62746",
-                            "destinationWarehouseCode" => "CVA"
-                        ],
-                        "package" => [
-                            "codeType" => "0",
-                            "nameType" => "",
-                            "dimensions" => []
-                        ],
-                        "pickupDetails" => [],
-                        "statusCurrent" => [
-                            "code" => "7",
-                            "spanishName" => "Entregado en sucursal Estafeta",
-                            "englishName" => "Delivered in OCURRE office",
-                            "localDateTime" => "2021-07-14 20:48:00",
-                            "warehouseName" => "Cuernavaca"
-                        ],
-                        "deliveryDetails" => [
-                            "receiverName" => "SOE: ENTREGA A CLIENTE NUMERO UNO",
-                            "longitude" => -98.9449448,
-                            "latitude" => 18.8308837
-                        ],
-                        "status" => [
-                            [
-                                "code" => "2",
-                                "spanishName" => "En Tránsito",
-                                "englishName" => "On transit",
-                                "eventDateTime" => "2021-07-14 17:34:00",
-                                "isReasonCode" => false,
-                                "reasonCodeDescription" => "",
-                                "warehouseName" => "Cuernavaca"
+                $trackData2 = [
+                    "items" => [
+                        [
+                            "information" => [
+                                "originalWaybill" => "2015410173997631417025",
+                                "waybillCode" => "2015410173997631417025",
+                                "trackingCode" => "0550655621"
                             ],
-                            [
-                                "code" => "5",
-                                "spanishName" => "Disponible en Oficina",
-                                "englishName" => "Available in office",
-                                "eventDateTime" => "2021-07-12 17:00:00",
-                                "isReasonCode" => false,
-                                "reasonCodeDescription" => "",
-                                "warehouseName" => "Estafeta Insurgentes( Manantiales )"
+                            "service" => [
+                                "code" => "63",
+                                "spanishName" => "Dia Sig.",
+                                "englishName" =>  "NEXT DAY",
+                                "customerCode" => "5410173",
+                                "destinationPostalCode" => "62746",
+                                "destinationWarehouseCode" => "CVA"
                             ],
-                            [
+                            "package" => [
+                                "codeType" => "0",
+                                "nameType" => "",
+                                "dimensions" => []
+                            ],
+                            "pickupDetails" => [],
+                            "statusCurrent" => [
                                 "code" => "7",
                                 "spanishName" => "Entregado en sucursal Estafeta",
                                 "englishName" => "Delivered in OCURRE office",
-                                "eventDateTime" => "2021-07-14 20:48:00",
-                                "isReasonCode" => false,
-                                "reasonCodeDescription" => "",
+                                "localDateTime" => "2021-07-14 20:48:00",
                                 "warehouseName" => "Cuernavaca"
                             ],
+                            "deliveryDetails" => [
+                                "receiverName" => "SOE: ENTREGA A CLIENTE NUMERO UNO",
+                                "longitude" => -98.9449448,
+                                "latitude" => 18.8308837
+                            ],
+                            "status" => [
+                                [
+                                    "code" => "2",
+                                    "spanishName" => "En Tránsito",
+                                    "englishName" => "On transit",
+                                    "eventDateTime" => "2021-07-14 17:34:00",
+                                    "isReasonCode" => false,
+                                    "reasonCodeDescription" => "",
+                                    "warehouseName" => "Cuernavaca"
+                                ],
+                                [
+                                    "code" => "5",
+                                    "spanishName" => "Disponible en Oficina",
+                                    "englishName" => "Available in office",
+                                    "eventDateTime" => "2021-07-12 17:00:00",
+                                    "isReasonCode" => false,
+                                    "reasonCodeDescription" => "",
+                                    "warehouseName" => "Estafeta Insurgentes( Manantiales )"
+                                ],
+                                [
+                                    "code" => "7",
+                                    "spanishName" => "Entregado en sucursal Estafeta",
+                                    "englishName" => "Delivered in OCURRE office",
+                                    "eventDateTime" => "2021-07-14 20:48:00",
+                                    "isReasonCode" => false,
+                                    "reasonCodeDescription" => "",
+                                    "warehouseName" => "Cuernavaca"
+                                ],
+                            ]
                         ]
                     ]
-                ]
-            ];
-
-
-            $estafetaTrack = $trackData['items'][0]['status'] ?? [];
-
-            $track_orders = collect($estafetaTrack)->map(function ($item) {
-                return [
-                    'title'      => $item['spanishName'],
-                    'created_at' => $item['eventDateTime'],
-                    'lugar'      => $item['warehouseName'] ?? null,
                 ];
-            });
 
-            // return response()->json([
-            //     'track_orders' => $track_orders,
-            //     'numbers' => $track_orders->count() - 1
-            // ]);
+                $estafetaTrack = $trackData['items'][0]['status'] ?? [];
 
-            return view('user.order.track', [
-                'track_orders' => $track_orders,
-                'numbers' => $track_orders->count() - 1
-                //TrackOrder::whereOrderId($order->id)->get()->toArray()
-            ]);
+                $track_orders = collect($estafetaTrack)->map(function ($item) {
+                    return [
+                        'title'      => $item['spanishName'],
+                        'created_at' => $item['eventDateTime'],
+                        'lugar'      => $item['warehouseName'] ?? null,
+                    ];
+                });
+
+                // return response()->json([
+                //     'track_orders' => $track_orders,
+                //     'numbers' => $track_orders->count() - 1
+                // ]);
+
+                return view('user.order.track', [
+                    'track_orders' => $track_orders,
+                    'numbers' => $track_orders->count() - 1
+                    //TrackOrder::whereOrderId($order->id)->get()->toArray()
+                ]);
+            }else {
+                 return view('user.order.track',[
+                    'numbers' => 3,
+                    'track_orders' => TrackOrder::whereOrderId($order->id)->get()->toArray()
+                ]);
+            }
         } else {
             return view('user.order.track', [
                 'numbers' => 3,

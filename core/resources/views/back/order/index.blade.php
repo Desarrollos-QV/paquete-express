@@ -68,6 +68,9 @@
               <th>{{ __('Order ID') }}</th>
               <th>{{ __('User') }}</th>
               <th>{{ __('Total Amount') }}</th>
+              <th>{{ __('Scale Weight / Volumetric Weight') }}</th>
+              <th>{{ __('Type Shipment') }}</th>
+              <th>{{ __('Generated Guide') }}</th>
               <th>{{ __('Payment Status') }}</th>
               <th>{{ __('Order Status') }}</th>
 							<th>{{ __('Actions') }}</th>

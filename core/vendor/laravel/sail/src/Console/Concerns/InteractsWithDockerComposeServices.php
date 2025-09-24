@@ -24,7 +24,6 @@ trait InteractsWithDockerComposeServices
         'typesense',
         'minio',
         'mailpit',
-        'rabbitmq',
         'selenium',
         'soketi',
     ];
@@ -95,7 +94,7 @@ trait InteractsWithDockerComposeServices
         // Merge volumes...
         collect($services)
             ->filter(function ($service) {
-                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio', 'rabbitmq']);
+                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio']);
             })->filter(function ($service) use ($compose) {
                 return ! array_key_exists($service, $compose['volumes'] ?? []);
             })->each(function ($service) use (&$compose) {
@@ -206,10 +205,6 @@ trait InteractsWithDockerComposeServices
             $environment = preg_replace("/^MAIL_PORT=(.*)/m", "MAIL_PORT=1025", $environment);
         }
 
-        if (in_array('rabbitmq', $services)) {
-            $environment = str_replace('RABBITMQ_HOST=127.0.0.1', 'RABBITMQ_HOST=rabbitmq', $environment);
-        }
-
         file_put_contents($this->laravel->basePath('.env'), $environment);
     }
 
@@ -231,14 +226,7 @@ trait InteractsWithDockerComposeServices
         $phpunit = file_get_contents($path);
 
         $phpunit = preg_replace('/^.*DB_CONNECTION.*\n/m', '', $phpunit);
-        $phpunit = str_replace(
-            [
-                '<!-- <env name="DB_DATABASE" value=":memory:"/> -->',
-                '<env name="DB_DATABASE" value=":memory:"/>',
-            ],
-            '<env name="DB_DATABASE" value="testing"/>',
-            $phpunit
-        );
+        $phpunit = str_replace('<!-- <env name="DB_DATABASE" value=":memory:"/> -->', '<env name="DB_DATABASE" value="testing"/>', $phpunit);
 
         file_put_contents($this->laravel->basePath('phpunit.xml'), $phpunit);
     }

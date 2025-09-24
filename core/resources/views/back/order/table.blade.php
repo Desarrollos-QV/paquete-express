@@ -17,7 +17,31 @@
                 {{ PriceHelper::OrderTotal($data) }}{{ $data->currency_sign }}
             @endif
         </td>
-
+        <td>
+            @php
+                $order = new App\Models\Order;
+                $chk = $order->ViewScaleVolumetric($data->cart);
+            @endphp
+            <span class="badge bg-info">SW : {{ $chk['ScaleWeight'] }}</span>  <span class="badge bg-warning">VW: {{$chk['VolumetricWeight']}}</span>
+        </td>
+        <td>
+            @if($data->type_ship == 0) <!-- Envio Local -->
+            Envio Local
+            @else
+            Envio Foraneo
+            @endif
+        </td>
+        <td>
+            @if($data->guide_generated != null)
+            <a class="btn btn-success btn-sm" href="{{ route('back.order.download.track', $data->id) }}" target="_blank">
+                <i class="fas fa-download"></i>&nbsp; {{ __('Download PDF Track') }}
+            </a>
+            @else
+            <a class="btn btn-primary btn-sm" href="{{ route('back.order.guide.generated', $data->id) }}">
+                <i class="fas fa-file-invoice"></i>&nbsp; {{ __('Generated Guide') }}
+            </a>
+            @endif
+        </td>
         <td>
             <div class="dropdown">
                 <button

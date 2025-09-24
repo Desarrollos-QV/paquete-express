@@ -299,7 +299,7 @@ class Finder implements \IteratorAggregate
 			$operator = $operator ?: '=';
 		}
 
-		$date = DateTime::from($date)->getTimestamp();
+		$date = DateTime::from($date)->format('U');
 		return $this->filter(fn(FileInfo $file): bool => !$file->isFile() || Helpers::compare($file->getMTime(), $operator, $date));
 	}
 

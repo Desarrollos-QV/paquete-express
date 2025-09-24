@@ -4,16 +4,6 @@
 
     <section class="card widget widget-featured-posts widget-order-summary p-4">
         <h3 class="widget-title">{{ __('Order Summary') }}</h3>
-        @php
-            $free_shipping = DB::table('shipping_services')->whereStatus(1)->whereIsCondition(1)->first();
-        @endphp
-
-        @if ($free_shipping)
-            @if ($free_shipping->minimum_price >= $cart_total)
-                <p class="free-shippin-aa"><em>{{ __('Free Shipping After Order') }}
-                        {{ PriceHelper::setCurrencyPrice($free_shipping->minimum_price) }}</em></p>
-            @endif
-        @endif
 
         <table class="table">
             <tr>
@@ -48,7 +38,7 @@
             <tr class="d-none set__shipping_price_tr">
                 <td>{{ __('Shipping') }}:</td>
                 <td class="text-gray-dark set__shipping_price">
-
+                    {{-- Envios --}}
                 </td>
             </tr>
             <tr>
@@ -65,60 +55,14 @@
             <div class="row">
                 <div class="col-sm-12 mb-3">
                     @if (PriceHelper::CheckDigital() == true)
-                        @php
-                            $free_shipping = DB::table('shipping_services')
-                                ->whereStatus(1)
-                                ->whereIsCondition(1)
-                                ->first();
-                        @endphp
-
                         <select name="shipping_id" class="form-control" id="shipping_id_select" required>
                             <option value="" selected disabled>{{ __('Select Shipping Method') }}*</option>
-
-                            {{-- @foreach (DB::table('shipping_services')->whereStatus(1)->get() as $shipping)
-                            @if ($shipping->id == 1 && isset($free_shipping) && $free_shipping->minimum_price <= $cart_total)
-                                <option value="{{ $shipping->id }}" data-href="{{ route('front.shipping.setup') }}">
-                                    {{ $shipping->title }}
-                                </option>
-                            @else
-                                @if ($shipping->id != 1 && $free_shipping->minimum_price >= $cart_total)
-                                    <option value="{{ $shipping->id }}"
-                                        data-href="{{ route('front.shipping.setup') }}">{{ $shipping->title }}
-                                        ({{ PriceHelper::setCurrencyPrice($shipping->price) }})
-                                    </option>
-                                @endif
-                            @endif
-                        @endforeach --}}
                         </select>
                         @error('shipping_id')
                             <p class="text-danger shipping_message">{{ $message }}</p>
                         @enderror
                     @endif
                 </div>
-                {{-- <div class="col-sm-12 mb-3">
-                @if (PriceHelper::CheckDigital() == true)
-                    @if (DB::table('states')->whereStatus(1)->count() > 0)
-                        <select name="state_id" class="form-control" id="state_id_select" required>
-                            <option value="" selected disabled>{{ __('Select Shipping State') }}*</option>
-                            @foreach (DB::table('states')->whereStatus(1)->get() as $state)
-                                <option value="{{ $state->id }}" data-href="{{ route('front.state.setup') }}"
-                                    {{ Auth::check() && Auth::user()->state_id == $state->id ? 'selected' : '' }}>
-                                    {{ $state->name }}
-                                    @if ($state->type == 'fixed')
-                                        ({{ PriceHelper::setCurrencyPrice($state->price) }})
-                                    @else
-                                        ({{ $state->price }}%)
-                                    @endif
-
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('state_id')
-                            <p class="text-danger state_message">{{ $message }}</p>
-                        @enderror
-                    @endif
-                @endif
-            </div> --}}
             </div>
 
         </section>

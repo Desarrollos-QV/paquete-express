@@ -5,6 +5,7 @@
 @endsection
 
 @section('content')
+
     <!-- Page Title-->
     <div class="page-title">
         <div class="container">
@@ -65,6 +66,8 @@
                                 <form id="checkoutBilling" action="{{ route('front.checkout.store') }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="single_page_checkout" value="1">
+                                    <input class="form-control" name="type_ship" required type="hidden"
+                                    id="type_ship" value="0">
                                     <div class="row">
                                         <div class="col-sm-6">
                                             <div class="form-group">
@@ -138,8 +141,7 @@
                                                     <label for="checkout-city">{{ __('City') }}*</label>
                                                     <input
                                                         class="form-control {{ $errors->has('bill_city') ? 'requireInput' : '' }}"
-                                                        name="bill_city" type="text" id="checkout-city"
-                                                        disabled
+                                                        name="bill_city" type="text" id="checkout-city" disabled
                                                         value="{{ isset($user) ? $user->bill_city : '' }}">
                                                 </div>
                                             </div>
@@ -169,9 +171,11 @@
                                             </div>
                                         </div>
 
-                                        <input class="form-control" name="shippingInfo" required type="hidden" id="shippingInfo">
+                                        <input class="form-control" name="shippingInfo" required type="hidden"
+                                            id="shippingInfo">
                                     @endif
                                 </form>
+                                
                                 <input class="form-control" name="peso" required type="hidden" step="0.1"
                                     id="peso" value="{{ $peso }}">
                                 <input class="form-control" name="alto" type="hidden" step="0.1" id="alto"
@@ -201,14 +205,139 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        $(document).ready(function() {
+        let geocoder;
+        let lat;
+        let lng;
+        let LocationCheck;
+        let GrandTotal = "{{ PriceHelper::setCurrencyPrice($grand_total) }}"; 
+
+        function initMap() {
+            geocoder = new google.maps.Geocoder();
+        }
+
+        function CheckZones() {
+            $("#shipping_id_select").empty();
+            $("#shipping_id_select").prop('disabled',false);
+            $("#shipping_id_select").append(
+                `<option value="" selected disabled>{{ __('Select Shipping Method') }}*</option>`
+            );
+            
+            // Seteamos el costo total
+            $('.grand_total_set').text(GrandTotal);
+            $('.set__shipping_price_tr').addClass('d-none');
+            $('.set__shipping_price').text(`$0`);
+
+            /**
+             * 
+             * Obtencion de Geozones
+             *  
+             ***/
+            $.ajax({
+                url: '{{ route('user.shipping.geozones') }}',
+                type: "GET",
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.code == 200) {
+                        const zones = response.geozones;
+                        let zIndex = null;
+
+                        zones.forEach(function(zona, index) {
+                            var polygon = new google.maps.Polygon({
+                                paths: JSON.parse(zona.coords)
+                            });
+                            if (google.maps.geometry.poly.containsLocation(LocationCheck,
+                                    polygon)) {
+                                zIndex = index;
+                            }
+                        });
+
+                        if (zIndex != null) {
+                            document.getElementById('type_ship').value = 0;
+                            const shipingLocal = [zones[zIndex]];
+                            console.log("zona encontrada para envio... ", shipingLocal);
+                            $("#shippingInfo").attr('value', JSON.stringify(
+                                shipingLocal));
+
+                            $("#shipping_id_select").append(
+                                `<option 
+                                    data-price="${shipingLocal[0].price}" value="50">${shipingLocal[0].zone_name}</option>`
+                            );
+                        } else {
+                            document.getElementById('type_ship').value = 1;
+                            console.log("No hemos encontrado una zona para entregas a domicilio.")
+                            CheckZipEstaf();
+                        }
+                    } else {
+                        console.error('Error : ', response);
+                    }
+                }
+            });
+        }
+
+        function CheckZipEstaf() {
+
+            /**
+             * 
+             * Conexion con API de Estafeta
+             *  
+             ***/
+
+            var pvolum = $("#pvolum").val(),
+                alto = $("#alto").val(),
+                ancho = $("#ancho").val(),
+                largo = $("#largo").val();
+
+            $.ajax({
+                url: '{{ route('user.shipping.paquete') }}',
+                type: "GET",
+                data: {
+                    codezip: document.getElementById('checkout-zip').value,
+                    code_zip_tienda: document.getElementById('code_zip').value,
+                    pvolum: pvolum,
+                    alto: alto,
+                    ancho: ancho,
+                    largo: largo,
+                    _token: '{{ csrf_token() }}'
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.code == 200) {
+                        $("#shipping_id_select").empty();
+                        $("#shipping_id_select").prop('disabled',
+                            false);
+                        $("#shipping_id_select").append(
+                            `<option value="" selected disabled>{{ __('Select Shipping Method') }}*</option>`
+                        );
+
+                        $("#shippingInfo").attr('value', JSON.stringify(
+                            response.data));
+
+                        $.each(response.data, function(key, value) {
+                            $("#shipping_id_select").append(`<option 
+                                                    data-price="${value.price}"
+                                                    data-warranty="${value.warranty}" 
+                                                    value="${value.code}">${value.name}</option>`);
+                        });
+                    }
+                }
+            });
+
+        }
+
+
+        $(document).ready(async function() {
             var checkout_zip = $("#checkout-zip").val();
             if (checkout_zip != null) {
-                check();
+                await check();
+                
             }
-            $("#checkout-zip").blur(function() {
-                check();
+            $("#checkout-zip").blur(async () => {
+                await check();
             });
+
 
             function check() {
 
@@ -240,11 +369,12 @@
                         // $("#checkout-city").prop('disabled', false);
 
                         if (response.code == 200) {
+                            console.log(response)
                             $("#checkout-city").attr('value', response.ciudad);
-
-                            // $("#checkout-city").append('<option value="' + response.ciudad + '">' +
-                            //     response.ciudad + '</option>');
-
+                            console.log("Consultando Geocode : ", response.ciudad + ' ' + input_value)
+                            geocode({
+                                address: response.ciudad + ' ' + input_value
+                            });
                             $.each(response.colonias, function(key, value) {
                                 $("#checkout-colonia").append('<option value="' + value + '">' +
                                     value + '</option>');
@@ -252,52 +382,29 @@
                         }
                     }
                 });
-
-                /**
-                 * 
-                 * Conexion con API de Estafeta
-                 *  
-                 ***/
-
-                var pvolum = $("#pvolum").val(),
-                    alto = $("#alto").val(),
-                    ancho = $("#ancho").val(),
-                    largo = $("#largo").val();
-
-                $.ajax({
-                    url: '{{ route('user.shipping.paquete') }}',
-                    type: "GET",
-                    data: {
-                        codezip: input_value,
-                        code_zip_tienda: code_zip,
-                        pvolum: pvolum,
-                        alto: alto,
-                        ancho: ancho,
-                        largo: largo,
-                        _token: '{{ csrf_token() }}'
-                    },
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.code == 200) {
-                            $("#shipping_id_select").empty();
-                            $("#shipping_id_select").prop('disabled', false);
-                            $("#shipping_id_select").append(
-                                `<option value="" selected disabled>{{ __('Select Shipping Method') }}*</option>`
-                            );
-
-                            $("#shippingInfo").attr('value',JSON.stringify(response.data));
-
-                            $.each(response.data, function(key, value) {
-                                $("#shipping_id_select").append(`<option 
-                                    data-price="${value.price}"
-                                    data-warranty="${value.warranty}" 
-                                    value="${value.code}">${value.name}</option>`);
-                            });
-                        }
-                    }
-                });
             };
         });
+
+
+        function geocode(request) {
+            geocoder
+                .geocode(request)
+                .then((result) => {
+                    const {
+                        results
+                    } = result;
+                    LocationCheck = results[0].geometry.location;
+                    CheckZones();
+                })
+                .catch((e) => {
+                    alert("Geocode was not successful for the following reason: " + e);
+                });
+        }
+
+        window.initMap = initMap;
     </script>
 
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBqYcfefGddEiqR-OlfaLMSWP5m2RdMk18&libraries=places,geometry,drawing&callback=initMap">
+    </script>
 @endsection

@@ -221,7 +221,7 @@ final class Application
                         (new TestDoxHtmlRenderer)->render($testDoxResult),
                     );
                 } catch (DirectoryDoesNotExistException|InvalidSocketException $e) {
-                    EventFacade::emitter()->testRunnerTriggeredPhpunitWarning(
+                    EventFacade::emitter()->testRunnerTriggeredWarning(
                         sprintf(
                             'Cannot log test results in TestDox HTML format to "%s": %s',
                             $configuration->logfileTestdoxHtml(),
@@ -238,7 +238,7 @@ final class Application
                         (new TestDoxTextRenderer)->render($testDoxResult),
                     );
                 } catch (DirectoryDoesNotExistException|InvalidSocketException $e) {
-                    EventFacade::emitter()->testRunnerTriggeredPhpunitWarning(
+                    EventFacade::emitter()->testRunnerTriggeredWarning(
                         sprintf(
                             'Cannot log test results in TestDox plain text format to "%s": %s',
                             $configuration->logfileTestdoxText(),
@@ -271,7 +271,14 @@ final class Application
             }
 
             $shellExitCode = (new ShellExitCodeCalculator)->calculate(
-                $configuration,
+                $configuration->failOnDeprecation(),
+                $configuration->failOnPhpunitDeprecation(),
+                $configuration->failOnEmptyTestSuite(),
+                $configuration->failOnIncomplete(),
+                $configuration->failOnNotice(),
+                $configuration->failOnRisky(),
+                $configuration->failOnSkipped(),
+                $configuration->failOnWarning(),
                 $result,
             );
 
@@ -596,7 +603,7 @@ final class Application
                     EventFacade::instance(),
                 );
             } catch (DirectoryDoesNotExistException|InvalidSocketException $e) {
-                EventFacade::emitter()->testRunnerTriggeredPhpunitWarning(
+                EventFacade::emitter()->testRunnerTriggeredWarning(
                     sprintf(
                         'Cannot log test results in JUnit XML format to "%s": %s',
                         $configuration->logfileJunit(),
@@ -615,7 +622,7 @@ final class Application
                     EventFacade::instance(),
                 );
             } catch (DirectoryDoesNotExistException|InvalidSocketException $e) {
-                EventFacade::emitter()->testRunnerTriggeredPhpunitWarning(
+                EventFacade::emitter()->testRunnerTriggeredWarning(
                     sprintf(
                         'Cannot log test results in TeamCity format to "%s": %s',
                         $configuration->logfileTeamcity(),
@@ -682,7 +689,7 @@ final class Application
             try {
                 $baseline = (new Reader)->read($baselineFile);
             } catch (CannotLoadBaselineException $e) {
-                EventFacade::emitter()->testRunnerTriggeredPhpunitWarning($e->getMessage());
+                EventFacade::emitter()->testRunnerTriggeredWarning($e->getMessage());
             }
 
             if ($baseline !== null) {

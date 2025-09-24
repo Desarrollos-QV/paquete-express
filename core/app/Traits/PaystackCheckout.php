@@ -85,6 +85,7 @@ trait PaystackCheckout
         $orderData['currency_sign'] = PriceHelper::setCurrencySign();
         $orderData['currency_value'] = PriceHelper::setCurrencyValue();
         $orderData['order_status'] = 'Pending';
+        $orderData['type_ship'] = $data['type_ship'];
 
         try{
                 $orderData['txnid'] =  $data['ref_id'];

@@ -113,7 +113,7 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
         $constructor = $class->getConstructor();
 
         if ($constructor !== null && !$constructor->isPublic()) {
-            Event\Facade::emitter()->testRunnerTriggeredPhpunitWarning(
+            Event\Facade::emitter()->testRunnerTriggeredWarning(
                 sprintf(
                     'Class "%s" has no public constructor.',
                     $class->getName(),
@@ -140,7 +140,7 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
         }
 
         if ($testSuite->isEmpty()) {
-            Event\Facade::emitter()->testRunnerTriggeredPhpunitWarning(
+            Event\Facade::emitter()->testRunnerTriggeredWarning(
                 sprintf(
                     'No tests found in class "%s".',
                     $class->getName(),
@@ -252,7 +252,7 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
                 );
             }
         } catch (RunnerException $e) {
-            Event\Facade::emitter()->testRunnerTriggeredPhpunitWarning(
+            Event\Facade::emitter()->testRunnerTriggeredWarning(
                 $e->getMessage(),
             );
         }
@@ -638,7 +638,7 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
 
             /** @psalm-suppress RedundantCondition */
             if ($emitCalledEvent) {
-                $emitter->beforeFirstTestMethodCalled(
+                $emitter->testBeforeFirstTestMethodCalled(
                     $this->name,
                     $calledMethod,
                 );
@@ -656,7 +656,7 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
             }
 
             if (isset($t)) {
-                $emitter->beforeFirstTestMethodErrored(
+                $emitter->testBeforeFirstTestMethodErrored(
                     $this->name,
                     $calledMethod,
                     Event\Code\ThrowableBuilder::from($t),
@@ -667,7 +667,7 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
         }
 
         if (!empty($calledMethods)) {
-            $emitter->beforeFirstTestMethodFinished(
+            $emitter->testBeforeFirstTestMethodFinished(
                 $this->name,
                 ...$calledMethods,
             );
@@ -700,7 +700,7 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
             } catch (Throwable $t) {
             }
 
-            $emitter->afterLastTestMethodCalled(
+            $emitter->testAfterLastTestMethodCalled(
                 $this->name,
                 $calledMethod,
             );
@@ -708,7 +708,7 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
             $calledMethods[] = $calledMethod;
 
             if (isset($t)) {
-                $emitter->afterLastTestMethodErrored(
+                $emitter->testAfterLastTestMethodErrored(
                     $this->name,
                     $calledMethod,
                     Event\Code\ThrowableBuilder::from($t),
@@ -717,7 +717,7 @@ class TestSuite implements IteratorAggregate, Reorderable, SelfDescribing, Test
         }
 
         if (!empty($calledMethods)) {
-            $emitter->afterLastTestMethodFinished(
+            $emitter->testAfterLastTestMethodFinished(
                 $this->name,
                 ...$calledMethods,
             );

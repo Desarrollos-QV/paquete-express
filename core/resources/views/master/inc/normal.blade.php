@@ -160,6 +160,11 @@
                     </a>
                 </li>
                 <li>
+                    <a class="sub-link" href="{{ route('back.geozones.index') }}">
+                        <span class="sub-item">{{ __('GeoZones') }}</span>
+                    </a>
+                </li>
+                <li>
                     <a class="sub-link" href="{{ route('back.state.index') }}">
                         <span class="sub-item">{{ __('State Charge') }}</span>
                     </a>
