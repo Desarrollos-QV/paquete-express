@@ -13,7 +13,8 @@
             width: 600px;
             border: 1px solid #d3d3d3;
             padding: 20px;
-            border-radius: 20px
+            border-radius: 20px;
+            position: relative;
         }
 
         .wrapflex {
@@ -24,6 +25,9 @@
         }
 
         .logo {
+            position: absolute;
+            top: 10px;
+            right: 10px;
             width: 100px;
         }
 
@@ -47,15 +51,16 @@
 
 <body>
     <div class="contenedor">
-        <h2>Guía #{{ $datos['codigo'] }}</h2>
+        <img src="{{ $datos['logo'] }}" alt="Logo" class="logo">
+        <section style="text-align: center;">
+            <h2>Guía #{{ $datos['codigo'] }}</h2>
+        </section>
         <div class="wrapflex">
             <table>
                 <tbody>
                     <tr>
                         <th>
                             <div class="qr" style="text-align: center">
-                                <img src="{{ $datos['logo'] }}" alt="Logo" class="logo">
-                                <br /><br />
                                 <img src="data:image/png;base64,{{ $qrCode }}" alt="QR Code">
                                 <br />
                                 <small style="font-size:10px;"><sub>(QR unicamente para repartidor)</sub></small>
@@ -79,7 +84,7 @@
             </table>
         </div>
 
-        <p style="margin-top:30px;">www.paqueteExpress.com</p>
+        <p style="margin-top:30px;">https://shoppingmich.com</p>
     </div>
 </body>
 
