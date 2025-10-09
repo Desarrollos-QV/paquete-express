@@ -108,7 +108,7 @@ trait StripeCheckout
                 'success_url' => $notify_url,
                 'customer_email' => Session::get('shipping_address')['ship_email'],
                 'payment_method_types' => ['card'],
-
+                'payment_method_options' => ['card' => ['installments' => ['enabled' => true]]],
                 'line_items' => [
                     [
                         'price_data' => [
