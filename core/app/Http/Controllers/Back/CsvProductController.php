@@ -132,6 +132,8 @@ class CsvProductController extends Controller
             }
 
             $file = fopen('assets/temp_files/' . $filename, "r");
+            
+
 
             $i = 1;
 
@@ -139,41 +141,41 @@ class CsvProductController extends Controller
 
                 if ($i != 1) {
 
-                    $category_id = $line[31] ? (Category::whereName($line[31])->exists() ? Category::whereName($line[31])->first()->id : 0) : 0;
-                    $subcategory_id = $line[32] ? (SubCategory::whereName($line[32])->exists() ? SubCategory::whereName($line[32])->first()->id : 0) : 0;
-                    $childcategory_id = $line[33] ? (ChieldCategory::whereName($line[33])->exists() ? ChieldCategory::whereName($line[33])->first()->id : 0) : 0;
-                    $brand_id = $line[34] ? (Brand::whereName($line[33])->exists() ? Brand::whereName($line[33])->first()->id : 0) : 0;
+                    $category_id = $line[39] ? (Category::whereName($line[39])->exists() ? Category::whereName($line[39])->first()->id : 0) : 0;
+                    $subcategory_id = $line[40] ? (SubCategory::whereName($line[40])->exists() ? SubCategory::whereName($line[40])->first()->id : 0) : 0;
+                    $childcategory_id = $line[41] ? (ChieldCategory::whereName($line[41])->exists() ? ChieldCategory::whereName($line[41])->first()->id : 0) : 0;
+                    $brand_id = $line[42] ? (Brand::whereName($line[40])->exists() ? Brand::whereName($line[40])->first()->id : 0) : 0;
 
                     $input['category_id'] = $category_id;
                     $input['subcategory_id'] = $subcategory_id;
                     $input['childcategory_id'] = $childcategory_id;
                     $input['brand_id'] = $brand_id;
-                    $input['tax_id'] = $line[4];
-                    $input['name'] = $line[6];
-                    $input['slug'] = $line[7];
-                    $input['sku'] = $line[8];
-                    $input['tags'] = $line[9];
-                    $input['video'] = $line[10];
-                    $input['sort_details'] = $line[11];
-                    $input['specification_name'] = $line[12];
-                    $input['specification_description'] = $line[13];
-                    $input['is_specification'] = $line[14];
-                    $input['details'] = $line[15];
-                    $input['discount_price'] = $line[17];
-                    $input['previous_price'] = $line[18];
-                    $input['stock'] = $line[19];
-                    $input['meta_keywords'] = $line[20];
-                    $input['meta_description'] = $line[21];
-                    $input['status'] = $line[22];
-                    $input['is_type'] = $line[23];
-                    $input['date'] = $line[24];
-                    $input['file'] = $line[26];
-                    $input['link'] = $line[27];
-                    $input['file_type'] = $line[28] ? $line[28] : null;
+                    $input['tax_id'] = $line[1];
+                    $input['name'] = $line[2];
+                    $input['slug'] = $line[3];
+                    $input['sku'] = $line[4];
+                    $input['tags'] = $line[5];
+                    $input['video'] = $line[6];
+                    $input['sort_details'] = $line[7];
+                    $input['specification_name'] = $line[8];
+                    $input['specification_description'] = $line[9];
+                    $input['is_specification'] = $line[10];
+                    $input['details'] = $line[11];
+                    $input['discount_price'] = $line[21];
+                    $input['previous_price'] = $line[22];
+                    $input['stock'] = $line[23];
+                    $input['meta_keywords'] = $line[24];
+                    $input['meta_description'] = $line[25];
+                    $input['status'] = $line[26];
+                    $input['is_type'] = $line[27];
+                    $input['date'] = $line[28];
+                    $input['file'] = $line[29];
+                    $input['link'] = $line[30];
+                    $input['file_type'] = $line[31] ? $line[31] : null;
 
-                    $input['item_type'] = $line[25];
+                    $input['item_type'] = $line[36];
 
-                    $images_name = $this->uploadImage($line[16], 'images');
+                    $images_name = $line[12] ? $this->uploadImage($line[12], 'images') : ['undefined','undefined'];
                     
 
                     $input['photo'] = $images_name[1];
@@ -201,7 +203,7 @@ class CsvProductController extends Controller
             return back()->withSuccess(__('Bulk Product File Imported Successfully.'));
         } catch (\Throwable $th) {
             dd($th);
-            return back()->withError(__('Something is wrong!'));
+           return back()->withError(__('Something is wrong!'));
         }
     }
 

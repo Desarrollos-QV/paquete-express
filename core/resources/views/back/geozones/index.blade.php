@@ -49,7 +49,7 @@
                                                 <td>{{ $row->zone_name }}</td>
                                                 <td>{{ number_format((float) $row->coverage, 2, '.', '') }} KM</td>
                                                 {{-- <td>{{ $row->cp }}</td> --}}
-                                                <td>${{ number_format($row->cost,2) }}</td>
+                                                <td>${{ number_format($row->price,2) }}</td>
                                                 <td>
                                                     <div class="dropdown">
                                                         <button
