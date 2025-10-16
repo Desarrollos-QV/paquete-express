@@ -282,7 +282,7 @@
             <div class="row gx-3">
                 <div class="col-md-4">
                     <a href="{{ $banner_secend['url1'] }}" class="genius-banner">
-                        <img class="lazy" data-src="{{ url('/core/public/storage/images/' . $banner_secend['img1']) }}"
+                        <img class="lazy" src="{{ url('/core/public/storage/images/' . $banner_secend['img1']) }}"
                             alt="">
                         <div class="inner-content">
                             @if (isset($banner_secend['subtitle1']))
@@ -297,7 +297,7 @@
                 </div>
                 <div class="col-md-4">
                     <a href="{{ $banner_secend['url2'] }}" class="genius-banner">
-                        <img class="lazy" data-src="{{ url('/core/public/storage/images/' . $banner_secend['img2']) }}"
+                        <img class="lazy" src="{{ url('/core/public/storage/images/' . $banner_secend['img2']) }}"
                             alt="">
                         <div class="inner-content">
                             @if (isset($banner_secend['subtitle2']))
@@ -312,7 +312,7 @@
                 </div>
                 <div class="col-md-4">
                     <a href="{{ $banner_secend['url3'] }}" class="genius-banner">
-                        <img class="lazy" data-src="{{ url('/core/public/storage/images/' . $banner_secend['img3']) }}"
+                        <img class="lazy" src="{{ url('/core/public/storage/images/' . $banner_secend['img3']) }}"
                             alt="">
                         <div class="inner-content">
                             @if (isset($banner_secend['subtitle3']))
@@ -557,7 +557,7 @@
             <div class="row gx-3">
                 <div class="col-md-6">
                     <a href="{{ $banner_third['url1'] }}" class="genius-banner">
-                        <img class="lazy" data-src="{{ url('/core/public/storage/images/' . $banner_third['img1']) }}"
+                        <img class="lazy" src="{{ url('/core/public/storage/images/' . $banner_third['img1']) }}"
                             alt="">
                         <div class="inner-content">
                             @if (isset($banner_third['subtitle1']))
@@ -571,7 +571,7 @@
                 </div>
                 <div class="col-md-6">
                     <a href="{{ $banner_third['url2'] }}" class="genius-banner">
-                        <img class="lazy" data-src="{{ url('/core/public/storage/images/' . $banner_third['img2']) }}"
+                        <img class="lazy" src="{{ url('/core/public/storage/images/' . $banner_third['img2']) }}"
                             alt="">
                         <div class="inner-content">
                             @if (isset($banner_third['subtitle2']))
