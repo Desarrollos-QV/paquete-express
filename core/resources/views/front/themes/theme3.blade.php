@@ -538,7 +538,7 @@
                             <div class="slider-item">
                                 <a class="text-center" href="{{ route('front.catalog') . '?brand=' . $brand->slug }}">
                                     <img class="d-block hi-50 lazy"
-                                    data-src="{{ url('/core/public/storage/images/' . $brand->photo) }}"
+                                    src="{{ url('/core/public/storage/images/' . $brand->photo) }}"
                                         alt="{{ $brand->name }}" title="{{ $brand->name }}">
                                 </a>
                             </div>
