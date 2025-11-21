@@ -208,7 +208,7 @@ class AccountController extends Controller
                     "Length" => $length,
                     "Width" => $width,
                     "Height" => $height,
-                    "Weight" => $weight // ya calculado
+                    "Weight" => $volumetricWeight // ya calculado
                 ]
             ];
 
@@ -224,7 +224,7 @@ class AccountController extends Controller
             $serviceDescriptions = [
                 '09:30'           => 'Entrega al siguiente día hábil antes de las 09:30 a.m. 1 KG',
                 '11:30'           => 'Entrega al siguiente día hábil antes de las 11:30 a.m. 1 KG',
-                '12:30'           => 'Entrega al siguiente día hábil antes de las 11:30 a.m. 1 KG',
+                '12:30'           => 'Entrega al siguiente día hábil antes de las 12:30 a.m. 1 KG',
                 'Dia Sig.'        => 'Entrega al siguiente día hábil en horario abierto 1 KG',
                 '2 Dias'          => 'Entrega en dos días hábiles en horario abierto 1 KG',
                 'Terrestre'       => 'Entrega de 2 a 5 días hábiles en horario abierto 5 KG',
@@ -234,24 +234,30 @@ class AccountController extends Controller
             // Array a entregar
             $shippingOptions = [];
 
+            /**
+             * Valor_API_origen: Valor de servicio obtenido por API * 1.25 = Valor_API_final
+             * Valor_API_final
+             */
+
             foreach ($services as $service) {
                 $name = trim($service['ServiceName']); // Algunos servicios pueden venir con espacios
 
-                if($name == 'Terrestre')
-                {
-                    $shippingOptions[] = [
-                        'code'       => $service['ServiceCode'],
-                        'raw_name'   => $name,
-                        'name'       => $serviceDescriptions[$name] ?? 'Servicio desconocido',
-                        'price'      => $service['TotalAmount'],
-                        'modality'   => $service['Modality'],
-                        'vat'        => $service['VATApplied'],
-                        'warranty'   => strtolower($service['CoversWarranty']) === 'true',
-                    ];
-                }
+                $vaf = ($service['TotalAmount'] * 1.25);
+            
+                $shippingOptions[] = [
+                    'code'       => $service['ServiceCode'],
+                    'raw_name'   => $name,
+                    'name'       => $serviceDescriptions[$name] ?? 'Servicio desconocido',
+                    'price'      => $vaf,
+                    'totalAmount' => $service['TotalAmount'],
+                    'modality'   => $service['Modality'],
+                    'vat'        => $service['VATApplied'],
+                    'warranty'   => strtolower($service['CoversWarranty']) === 'true',
+                ];
+                // if($name == 'Terrestre'){}
             }
 
-            return response()->json(['code' => 200, 'data' => $shippingOptions, 'allData' => $quotation]);
+            return response()->json(['code' => 200, 'data' => $shippingOptions, 'allData' => $quotation, 'allService' => $cotizacion, 'volumetricWeight' => $volumetricWeight, 'realWeight' => $realWeight]);
         } catch (\Exception $th) {
             return response()->json(['data' => 'error', 'message' => $th->getMessage()]);
         }

@@ -162,9 +162,11 @@
                                                         id="billing-country">
                                                         <option selected>{{ __('Choose Country') }}</option>
                                                         @foreach (DB::table('countries')->get() as $country)
+                                                            @if($country->name == 'Mexico' || $country->name == 'United States')
                                                             <option value="{{ $country->name }}"
                                                                 {{ isset($user) && $user->bill_country == $country->name ? 'selected' : '' }}>
                                                                 {{ $country->name }}</option>
+                                                            @endif
                                                         @endforeach
                                                     </select>
                                                 </div>
@@ -304,6 +306,7 @@
                 },
                 dataType: 'json',
                 success: function(response) {
+                console.log(response);
                     if (response.code == 200) {
                         $("#shipping_id_select").empty();
                         $("#shipping_id_select").prop('disabled',

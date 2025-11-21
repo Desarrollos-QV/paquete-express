@@ -38,10 +38,10 @@ class CsvProductController extends Controller
         foreach ($lists->toArray() as $list) {
             $list['photo'] = url('/core/public/storage/images/' . $list['photo']);
             $list['slug'] = Str::random(3) . $list['slug'] . Str::random(2);
-            $list['category'] = Category::findOrFail($list['category_id'])->name;
-            $list['subcategory'] = $list['subcategory_id'] ? Subcategory::findOrFail($list['subcategory_id'])->name : '';
-            $list['childcategory'] = $list['childcategory_id'] ? ChieldCategory::findOrFail($list['childcategory_id'])->name : '';
-            $list['brand'] = $list['brand_id'] ? Brand::findOrFail($list['brand_id'])->name : '';
+            $list['category'] = (Category::find($list['category_id'])) ? Category::find($list['category_id'])->name : "";
+            $list['subcategory'] = (Subcategory::find($list['subcategory_id'])) ? Subcategory::find($list['subcategory_id'])->name : '';
+            $list['childcategory'] = (ChieldCategory::find($list['childcategory_id'])) ? ChieldCategory::find($list['childcategory_id'])->name : '';
+            $list['brand'] = (Brand::find($list['brand_id'])) ? Brand::find($list['brand_id'])->name : '';
             unset($list['category_id']);
             unset($list['subcategory_id']);
             unset($list['childcategory_id']);
@@ -59,6 +59,7 @@ class CsvProductController extends Controller
             }
             fclose($FH);
         };
+
         return response()->stream($callback, 200, $headers);
     }
 
@@ -77,6 +78,7 @@ class CsvProductController extends Controller
         foreach ($lists as $list) {
             $new_list[] = $list;
         }
+
 
         # add headers for each column in the CSV download
         array_unshift($new_list, array_keys($new_list[0]));

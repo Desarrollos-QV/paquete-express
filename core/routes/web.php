@@ -46,7 +46,6 @@ Route::group(['middleware' => ['adminlocalize', 'demo']], function () {
         Route::group(['middleware' => 'permissions:Manage Products'], function () {
 
             //------------ ITEM ------------
-
             Route::get('item/add', 'Back\ItemController@add')->name('back.item.add');
             Route::get('item/status/{item}/{status}', 'Back\ItemController@status')->name('back.item.status');
             Route::get('get/subcategory', 'Back\ItemController@getsubCategory')->name('back.get.subcategory');
@@ -60,7 +59,7 @@ Route::group(['middleware' => ['adminlocalize', 'demo']], function () {
             Route::delete('item/gallery/{gallery}/delete', 'Back\ItemController@galleryDelete')->name('back.item.gallery.delete');
 
             // Bulk product upload
-            Route::get('/product/csv/export', 'Back\CsvProductController@export')->name('back.csv.export');
+            Route::get('products/csv/export', 'Back\CsvProductController@exportProducts')->name('back.csv.export');
             Route::get('bulk/product/index', 'Back\CsvProductController@index')->name('back.bulk.product.index');
             Route::post('csv/import', 'Back\CsvProductController@import')->name('back.csv.import');
             Route::get('transaction/csv/export', 'Back\CsvProductController@transactionExport')->name('back.csv.transaction.export');

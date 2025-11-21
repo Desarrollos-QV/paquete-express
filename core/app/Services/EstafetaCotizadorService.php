@@ -22,10 +22,10 @@ class EstafetaCotizadorService
     {
         $this->clientId             = Setting::value('apikey_estafeta');
         $this->clientSecret         = Setting::value('client_secret_estafeta');
-        $this->baseUrlToken         = 'https://apiqa.estafeta.com:8443/auth/oauth/v2/token'; //'https://apiqa.estafeta.com:8443/auth/oauth/v2/token';
-        $this->baseUrlCotizador     = 'https://wscotizadorqa.estafeta.com/Cotizacion/rest/Cotizador/Cotizacion'; //'https://wscotizadorqa.estafeta.com/Cotizacion/rest/Cotizador/Cotizacion';
-        $this->baseUrlCreateLabel   = 'https://labelqa.estafeta.com/v1/wayBills/batch?outputType=FILE_PDF_SC&outputGroup=REQUEST&responseMode=SYNC_INLINE'; // 'https://labelqa.estafeta.com/RestLabel/wslabel.svc/Label';
-        $this->baseUrlTrackingItems = 'https://csrestqa.estafeta.com/v1/WS_trackingItems/tracking-item-status';
+        $this->baseUrlToken         = 'https://api.estafeta.com/auth/oauth/v2/token'; //'https://apiqa.estafeta.com:8443/auth/oauth/v2/token';
+        $this->baseUrlCotizador     = 'https://wscotizador.estafeta.com/Cotizacion/rest/Cotizador/Cotizacion'; //'https://wscotizadorqa.estafeta.com/Cotizacion/rest/Cotizador/Cotizacion'; //'https://wscotizadorqa.estafeta.com/Cotizacion/rest/Cotizador/Cotizacion';
+        $this->baseUrlCreateLabel   = 'https://labelrest.estafeta.com/v1/wayBills/batch?outputType=FILE_PDF_SC&outputGroup=REQUEST&responseMode=SYNC_INLINE'; //'https://labelqa.estafeta.com/v1/wayBills/batch?outputType=FILE_PDF_SC&outputGroup=REQUEST&responseMode=SYNC_INLINE'; // 'https://labelqa.estafeta.com/RestLabel/wslabel.svc/Label';
+        $this->baseUrlTrackingItems = 'https://wstrackingitem.estafeta.com/v1/WS_trackingItems/tracking-item-status'; //'https://csrestqa.estafeta.com/v1/WS_trackingItems/tracking-item-status';
     }
 
     /**

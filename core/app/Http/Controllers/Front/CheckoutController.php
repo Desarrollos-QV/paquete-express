@@ -230,6 +230,7 @@ class CheckoutController extends Controller
             return redirect()->back();
         }
     }
+    
     public function billingStore(Request $request)
     {
         // laravel validation
