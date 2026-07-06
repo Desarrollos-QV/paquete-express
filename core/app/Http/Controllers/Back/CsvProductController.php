@@ -23,6 +23,7 @@ class CsvProductController extends Controller
     {
         return view('back.item.bulk-upload');
     }
+    
     public function export()
     {
         $headers = [
@@ -208,7 +209,6 @@ class CsvProductController extends Controller
            return back()->withError(__('Something is wrong!'));
         }
     }
-
 
     public function uploadImage($file, $path, $delete = null)
     {

@@ -4,7 +4,6 @@
     {{ $item->name }}
 @endsection
 
-
 @section('meta')
     <meta name="tile" content="{{ $item->title }}">
     <meta name="keywords" content="{{ $item->meta_keywords }}">
@@ -18,8 +17,6 @@
     <meta name="og:image" content="{{ url('/core/public/storage/images/' . $item->photo) }}">
     <meta name="og:description" content="{{ $item->meta_description }}">
 @endsection
-
-
 
 @section('content')
     <div class="page-title">
@@ -39,6 +36,7 @@
             </div>
         </div>
     </div>
+
     <!-- Page Content-->
     <div class="container padding-bottom-1x mb-1">
         <div class="row">
@@ -315,7 +313,6 @@
         </div>
     </div>
 
-
     <!-- Reviews-->
     <div class="container  review-area">
         <div class="row">
@@ -489,9 +486,11 @@
                                             -{{ PriceHelper::DiscountPercentage($related) }}</div>
                                     @endif
                                     <div class="product-thumb">
-                                        <img class="lazy"
-                                            data-src="{{ url('/core/public/storage/images/' . $related->thumbnail) }}"
-                                            alt="Product">
+                                        <a href="{{ route('front.product', $related->slug) }}">
+                                            <img class="lazy"
+                                                data-src="{{ url('/core/public/storage/images/' . $related->thumbnail) }}"
+                                                alt="Product">
+                                        </a>
                                         <div class="product-button-group">
                                             <a class="product-button wishlist_store"
                                                 href="{{ route('user.wishlist.store', $related->id) }}"
@@ -526,9 +525,6 @@
             </div>
         </div>
     @endif
-
-
-
 
     @auth
         <form class="modal fade ratingForm" action="{{ route('front.review.submit') }}" method="post" id="leaveReview"
@@ -594,5 +590,4 @@
             </div>
         </form>
     @endauth
-
 @endsection

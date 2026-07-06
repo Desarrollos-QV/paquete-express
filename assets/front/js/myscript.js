@@ -1147,11 +1147,15 @@ $(document).on('change', '#shipping_id_select', function () {
     const shippingPrice = parseFloat($('option:selected', this).attr('data-price')) || 0;
     const shippingCode = $(this).val();
 
-    // Extrae el total actual del carrito (sin envío)
+    // Extrae el precio de envío anterior y el total actual del carrito
+    const oldShippingPrice = parseFloat($('.set__shipping_price').text().replace(/[^0-9.-]+/g, '')) || 0;
     const currentTotal = parseFloat($('.grand_total_set').text().replace(/[^0-9.-]+/g, '')) || 0;
 
-    // Suma el costo del envío
-    const newTotal = currentTotal + shippingPrice;
+    // Calcula el total base sin el envío anterior
+    const baseTotal = currentTotal - oldShippingPrice;
+
+    // Suma el nuevo costo del envío
+    const newTotal = baseTotal + shippingPrice;
 
     // Actualiza la vista
     $('.set__shipping_price_tr').removeClass('d-none');
