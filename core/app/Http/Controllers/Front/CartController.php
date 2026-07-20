@@ -10,6 +10,7 @@ use App\{
 use App\Helpers\PriceHelper;
 use App\Models\ShippingService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
 class CartController extends Controller
@@ -28,6 +29,11 @@ class CartController extends Controller
 
     public function index()
     {
+        if (!Auth::check()) {
+            Session::flash('error', __('Para poder ver tu carrito y cotizar envíos, por favor inicia sesión primero.'));
+            return redirect()->route('user.login');
+        }
+
         if (Session::has('cart')) {
             $cart = Session::get('cart');
         } else {
@@ -128,6 +134,7 @@ class CartController extends Controller
     {
         return view('includes.header_cart');
     }
+    
     public function CartLoad()
     {
         return view('includes.cart');

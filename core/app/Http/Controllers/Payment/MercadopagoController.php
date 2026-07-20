@@ -62,10 +62,11 @@ class MercadopagoController extends Controller
             $currency = Currency::where('is_default', 1)->first();
         }
 
-        $supported = ['USD', 'NGN', 'BRL'];
+        $supported = ['USD', 'NGN', 'BRL', 'MXN'];
         if (!in_array($currency->name, $supported)) {
-            Session::flash('error', __('Currency Not Supported'));
-            return redirect()->back();
+            dd('error de currency', $currency->name);
+            // Session::flash('error', __('Currency Not Supported'));
+            // return redirect()->back();
         }
 
         $data = PaymentSetting::whereUniqueKeyword('mercadopago')->first();
@@ -95,7 +96,25 @@ class MercadopagoController extends Controller
         if (!PriceHelper::Digital()) {
             $shipping = null;
         } else {
-            $shipping = ShippingService::findOrFail($request['shipping_id']);
+            if ($request['shipping_id']) {
+                $shipping_val = $request['shipping_id'];
+                if (strpos((string)$shipping_val, '.') !== false) {
+                    $shipping = json_decode(json_encode([
+                        'price' => (float)$shipping_val,
+                        'title' => 'Envío Dinámico'
+                    ]));
+                } else {
+                    $shipping = \App\Models\ShippingService::find($shipping_val);
+                    if (!$shipping) {
+                        $shipping = json_decode(json_encode([
+                            'price' => (float)$shipping_val,
+                            'title' => 'Envío Dinámico'
+                        ]));
+                    }
+                }
+            } else {
+                $shipping = null;
+            }
         }
 
         $discount = [];
@@ -116,16 +135,21 @@ class MercadopagoController extends Controller
 
         $success_url = route('front.checkout.success');
 
-        MercadoPago\SDK::setAccessToken($paydata['token']);
-        $payment = new MercadoPago\Payment();
-        $payment->transaction_amount = (string)$total_amount;
-        $payment->token = $input['token'];
-        $payment->description = $item_name;
-        $payment->installments = 1;
-        $payment->payer = array(
-            "email" => EmailHelper::getEmail()
-        );
-        $payment->save();
+        try {
+            MercadoPago\SDK::setAccessToken($paydata['token']);
+            $payment = new MercadoPago\Payment();
+            $payment->transaction_amount = (string)$total_amount;
+            $payment->token = $input['token'];
+            $payment->description = $item_name;
+            $payment->installments = 1;
+            $payment->payer = array(
+                "email" => EmailHelper::getEmail()
+            );
+            $payment->save();
+        } catch (\Throwable $th) {
+            dd('error', $th);
+            //throw $th;
+        }
 
         if ($payment->status == 'approved') {
             $orderData['state'] =  $request['state_id'] ? json_encode(State::findOrFail($request['state_id']), true) : null;

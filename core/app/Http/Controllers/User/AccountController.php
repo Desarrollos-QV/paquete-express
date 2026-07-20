@@ -229,6 +229,7 @@ class AccountController extends Controller
                 '2 Dias'          => 'Entrega en dos días hábiles en horario abierto 1 KG',
                 'Terrestre'       => 'Entrega de 2 a 5 días hábiles en horario abierto 5 KG',
                 'Terrestre 1 KG'  => 'Entrega de 2 a 5 días hábiles en horario abierto 1 KG',
+                'Metropoli'       => 'Servicio Metropolitano'
             ];
 
             // Array a entregar

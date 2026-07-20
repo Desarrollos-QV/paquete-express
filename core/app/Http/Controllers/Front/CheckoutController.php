@@ -61,6 +61,10 @@ class CheckoutController extends Controller
     public function checkoutPage()
     {
 
+        if (!Auth::check()) {
+            Session::flash('error', __('Para poder ver tu carrito y cotizar envíos, por favor inicia sesión primero.'));
+            return redirect()->route('user.login');
+        }
         if (!Session::has('cart')) {
             return redirect(route('front.cart'));
         }

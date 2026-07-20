@@ -55,8 +55,20 @@ trait PaystackCheckout
         if (!PriceHelper::Digital()) {
             $shipping = null;
         } else {
-            $shipping = json_decode($data['shippingInfo'], true); //ShippingService::findOrFail();
-            $shipping = ($shipping[0]) ? $shipping[0] : null;
+            $all_shipping = json_decode($data['shippingInfo'], true);
+            $shipping = null;
+            if (isset($data['shipping_id']) && is_array($all_shipping)) {
+                $selected_price = (float)$data['shipping_id'];
+                foreach ($all_shipping as $ship) {
+                    if (isset($ship['price']) && abs((float)$ship['price'] - $selected_price) < 0.01) {
+                        $shipping = $ship;
+                        break;
+                    }
+                }
+                if (!$shipping) {
+                    $shipping = ['price' => $selected_price, 'title' => 'Envío Dinámico'];
+                }
+            }
         }
         $discount = [];
         if(Session::has('coupon')){
